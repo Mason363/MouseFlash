@@ -172,8 +172,21 @@ async function save() {
     await mouse.writeConfig(config);
     await mouse.writeButtons(actions, config.sensor);
     await mouse.setDebounce(state.debounce);
+
+    // A button pointing at a macro slot is useless unless the slot itself is
+    // on the mouse. Without this the button fires an empty slot and Apply
+    // looks like it did nothing.
+    const banks = [...new Set(actions.filter((a) => a.type === ACTION.MACRO).map((a) => a.bank))];
+    let written = 0;
+    for (const bank of banks) {
+      const events = state.macros[bank] || [];
+      if (events.length) { await mouse.writeMacro(bank, events); written++; }
+    }
+
     markDirty(false);
-    toast('Written to the mouse');
+    toast(written
+      ? `Written to the mouse, including ${written} macro slot${written > 1 ? 's' : ''}`
+      : 'Written to the mouse');
   } catch (err) {
     toast(`Apply failed: ${describe(err)}`, 'error');
   } finally {
