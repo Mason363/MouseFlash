@@ -19,13 +19,13 @@ export const VENDOR_USAGE_PAGE = 0xff00;
 
 const DEVICES = [
   // Glorious
-  { vid: 0x258a, pid: 0x0036, fw: 'V103', name: 'Glorious Model O / O-', buttons: 6 },
-  { vid: 0x258a, pid: 0x0036, name: 'Glorious Model O / O-', buttons: 6 },
-  { vid: 0x258a, pid: 0x0033, fw: 'V102', name: 'Glorious Model D / D-', buttons: 6 },
-  { vid: 0x258a, pid: 0x0033, name: 'Glorious Model D / D-', buttons: 6 },
-  { vid: 0x258a, pid: 0x0027, fw: 'V102', name: 'Glorious Model O / O- (early firmware)', buttons: 6 },
-  { vid: 0x3794, pid: 0xa000, fw: '1009', name: 'Glorious Model O Eternal', buttons: 6 },
-  { vid: 0x3794, pid: 0xa000, name: 'Glorious Model O Eternal', buttons: 6 },
+  { vid: 0x258a, pid: 0x0036, fw: 'V103', name: 'Glorious Model O / O-', buttons: 6, art: 'model-o' },
+  { vid: 0x258a, pid: 0x0036, name: 'Glorious Model O / O-', buttons: 6, art: 'model-o' },
+  { vid: 0x258a, pid: 0x0033, fw: 'V102', name: 'Glorious Model D / D-', buttons: 6, art: 'model-d' },
+  { vid: 0x258a, pid: 0x0033, name: 'Glorious Model D / D-', buttons: 6, art: 'model-d' },
+  { vid: 0x258a, pid: 0x0027, fw: 'V102', name: 'Glorious Model O / O- (early firmware)', buttons: 6, art: 'model-o' },
+  { vid: 0x3794, pid: 0xa000, fw: '1009', name: 'Glorious Model O Eternal', buttons: 6, art: 'model-o-eternal' },
+  { vid: 0x3794, pid: 0xa000, name: 'Glorious Model O Eternal', buttons: 6, art: 'model-o-eternal' },
 
   // Other brands on the same protocol
   { vid: 0x258a, pid: 0x0027, fw: '3106', name: 'Dream Machines DM5 Blink', buttons: 8 },
@@ -40,6 +40,47 @@ const DEVICES = [
   { vid: 0x258a, pid: 0x1007, fw: '9677', name: 'Marvo Scorpion G961', buttons: 6 },
   { vid: 0x258a, pid: 0x1007, name: 'SinoWealth mouse (1007)', buttons: 6 },
 ];
+
+// Artwork for the mice we have photography for. `points` are percentages of the
+// image box, in protocol slot order: left, right, middle, forward, back, DPI.
+//
+// Photographs are Glorious' own product images, cut out of the button guides on
+// their support pages. See the credits in the README.
+export const ART = {
+  'model-o': {
+    src: 'assets/mice/model-o-top.webp',
+    caption: 'Model O',
+    points: [
+      { x: 25, y: 24 }, { x: 74, y: 24 }, { x: 50, y: 19 },
+      { x: 4, y: 25 }, { x: 4, y: 32 }, { x: 50, y: 37 },
+    ],
+  },
+  'model-d': {
+    src: 'assets/mice/model-d-top.webp',
+    caption: 'Model D',
+    points: [
+      { x: 25, y: 25 }, { x: 74, y: 25 }, { x: 50, y: 20 },
+      { x: 4, y: 26 }, { x: 4, y: 33 }, { x: 50, y: 38 },
+    ],
+  },
+  'model-o-eternal': {
+    src: 'assets/mice/model-o-eternal-top.webp',
+    caption: 'Model O Eternal',
+    points: [
+      { x: 26, y: 25 }, { x: 73, y: 25 }, { x: 50, y: 17 },
+      { x: 3, y: 29 }, { x: 3, y: 36 }, { x: 50, y: 40 },
+    ],
+  },
+};
+
+// Shown for a mouse we have no photograph of. It is a drawing, not a photo, so
+// the UI says so rather than implying it is the user's actual model.
+export const GENERIC_ART = {
+  src: 'assets/mouse-diagram.svg',
+  caption: 'Generic layout',
+  wide: true,
+  points: null,
+};
 
 // Sensor IDs as reported in byte 9 of the config report.
 const SENSORS = {

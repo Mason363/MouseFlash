@@ -10,230 +10,210 @@
 </head>
 <body>
 
-<header class="topbar">
-  <div class="brand">
-    <span class="brand-mark" aria-hidden="true"></span>
-    <h1>MouseFlash</h1>
+<header class="bar">
+  <div class="wordmark">MOUSE<em>FLASH</em></div>
+
+  <div class="bar-device" id="device-chip" hidden>
+    <span class="led" aria-hidden="true"></span>
+    <b id="device-name">No mouse</b>
+    <i id="device-meta"></i>
   </div>
 
-  <div class="topbar-device" id="device-chip" hidden>
-    <span class="dot" aria-hidden="true"></span>
-    <span>
-      <strong id="device-name">No mouse</strong>
-      <small id="device-meta"></small>
-    </span>
-  </div>
-
-  <div class="topbar-actions" id="topbar-actions" hidden>
-    <span class="dirty" id="dirty-flag" hidden>Unsaved changes</span>
-    <button class="btn" id="btn-reload">Reload</button>
-    <button class="btn primary" id="btn-save">Save to mouse</button>
+  <div class="bar-actions" id="topbar-actions" hidden>
+    <span class="dirty" id="dirty-flag" hidden>UNSAVED</span>
+    <button class="btn" id="btn-reload">RELOAD</button>
+    <button class="btn accent" id="btn-save">APPLY</button>
   </div>
 </header>
 
-<!-- ===================== Not connected ===================== -->
-<main class="wrap" id="view-connect">
-  <section class="card intro">
-    <h2>Configure your mouse from the browser</h2>
+<!-- ============================ connect ============================ -->
+<main class="gate" id="view-connect">
+  <div class="gate-box">
+    <h1>CONFIGURE YOUR MOUSE FROM THE BROWSER</h1>
     <p>
-      MouseFlash talks to Glorious and other SinoWealth mice over WebHID. Remap the
-      buttons, set DPI stages, record macros, and change lighting. Settings are
-      written to the mouse itself, so they follow it to any computer.
+      MouseFlash speaks to Glorious and other SinoWealth mice over WebHID. Remap
+      buttons, set DPI stages, record macros, change lighting. Everything is written
+      to the mouse itself, so it follows the mouse to any computer.
     </p>
 
-    <p class="unsupported" id="unsupported" hidden>
-      This browser has no WebHID support. Use Chrome, Edge, Opera, or another
-      Chromium browser on desktop. Firefox and Safari cannot do this.
+    <p class="warn" id="unsupported" hidden>
+      This browser has no WebHID. Use Chrome, Edge, Brave, Opera or another Chromium
+      browser on desktop. Firefox and Safari cannot do this.
     </p>
 
-    <button class="btn primary big" id="btn-connect">Connect a mouse</button>
-    <p class="hint" id="connect-hint">
-      Pick your mouse in the browser prompt. If more than one entry appears for it,
-      any of them will do: MouseFlash filters for the configuration interface.
+    <button class="btn accent big" id="btn-connect">CONNECT A MOUSE</button>
+    <p class="note" id="connect-hint">
+      Pick the mouse in the browser prompt. If it lists more than one entry for the
+      same mouse, any will do.
     </p>
 
-    <details class="note">
-      <summary>Which mice work</summary>
-      <p>Tested against the protocol used by these mice:</p>
-      <ul id="supported-list"></ul>
-      <p>
-        Other mice built on the same SinoWealth controller usually work too. MouseFlash
-        reads the sensor type and configuration size off the mouse rather than assuming,
-        so an unlisted mouse is worth trying. It will say so when it does not recognise one.
-      </p>
-    </details>
-
-    <details class="note warn">
-      <summary>Read this before you save anything</summary>
-      <p>
-        Saving writes to the mouse's onboard flash. This is the same thing the vendor
-        software does, but MouseFlash is not vendor software and the protocol was worked
-        out by reverse engineering. Something unexpected could leave the mouse in a bad
-        state. The buttons and DPI are the well understood parts; lighting and lift-off
-        distance are less so.
-      </p>
-      <p>
-        MouseFlash only changes bytes it understands and writes everything else back
-        exactly as the mouse reported it. Export a backup from the Settings tab first.
-      </p>
-    </details>
-  </section>
+    <div class="gate-cols">
+      <div>
+        <h2>SUPPORTED</h2>
+        <ul id="supported-list"></ul>
+      </div>
+      <div>
+        <h2>BEFORE YOU APPLY</h2>
+        <p class="note">
+          Applying writes to the mouse's onboard flash, the same thing the vendor
+          software does. The protocol was reverse engineered, not published, so
+          export a backup from the Device panel first.
+        </p>
+        <p class="note">
+          MouseFlash only changes bytes it understands and writes the rest back
+          exactly as the mouse reported them.
+        </p>
+      </div>
+    </div>
+  </div>
 </main>
 
-<!-- ===================== Connected ===================== -->
-<main class="wrap" id="view-main" hidden>
-  <nav class="tabs" role="tablist">
-    <button class="tab" role="tab" data-tab="buttons" aria-selected="true">Buttons</button>
-    <button class="tab" role="tab" data-tab="dpi">DPI</button>
-    <button class="tab" role="tab" data-tab="lighting">Lighting</button>
-    <button class="tab" role="tab" data-tab="macros">Macros</button>
-    <button class="tab" role="tab" data-tab="settings">Settings</button>
-  </nav>
+<!-- ============================ main ============================ -->
+<main class="stage" id="view-main" hidden>
 
-  <p class="banner" id="unknown-device" hidden>
-    This mouse is not in the known list. It speaks the right protocol, but the button
-    count and labels are a guess. Export a backup before saving.
-  </p>
+  <!-- left: buttons -->
+  <aside class="col col-left">
+    <h2 class="col-head">BUTTONS</h2>
+    <div class="button-list" id="button-list"></div>
+    <button class="slab wide" id="btn-macro-open">MACRO EDITOR</button>
 
-  <!-- Buttons -->
-  <section class="panel" data-panel="buttons">
-    <div class="split">
-      <div class="card diagram-card">
-        <div class="diagram" id="diagram">Loading diagram...</div>
-        <p class="hint">Click a button on the diagram, or pick one from the list.</p>
+    <div class="col-bottom">
+      <h2 class="col-head">PROFILE</h2>
+      <div class="profile-row">
+        <button class="slab" id="btn-export" title="Export a backup file">EXPORT</button>
+        <button class="slab" id="btn-import" title="Import a backup file">IMPORT</button>
       </div>
+      <input type="file" id="import-file" accept="application/json" hidden>
+    </div>
+  </aside>
 
-      <div class="card">
-        <div class="button-list" id="button-list"></div>
-        <hr>
-        <div id="action-editor"></div>
+  <!-- centre: the mouse -->
+  <section class="col col-mouse">
+    <p class="banner" id="unknown-device" hidden>
+      Not a recognised model. The protocol matches, but the artwork and button count
+      are a generic guess. Export a backup before applying.
+    </p>
+    <div class="mouse-frame">
+      <div class="mouse-art" id="mouse-art">
+        <img id="mouse-img" alt="" draggable="false">
+        <div class="callouts" id="callouts"></div>
       </div>
     </div>
+    <div class="model-name" id="model-name"></div>
   </section>
 
-  <!-- DPI -->
-  <section class="panel" data-panel="dpi" hidden>
-    <div class="card">
-      <div class="row">
-        <label for="polling-rate">Polling rate</label>
-        <select id="polling-rate"></select>
-        <span class="hint inline">Reports per second. Higher is smoother and uses more CPU.</span>
-      </div>
-      <div class="row">
-        <label class="check"><input type="checkbox" id="xy-independent"> Separate X and Y DPI</label>
-        <span class="hint inline">Off is what almost everyone wants.</span>
-      </div>
-    </div>
+  <!-- right: settings -->
+  <aside class="col col-right">
+    <div class="acc-scroll">
 
-    <div class="card">
-      <h3>DPI stages</h3>
-      <p class="hint">
-        The DPI button cycles through the enabled stages. The selected stage is the one
-        the mouse uses now. Steps of 100 are all the sensor accepts.
-      </p>
-      <div class="dpi-list" id="dpi-list"></div>
-    </div>
-  </section>
+      <details class="acc" open>
+        <summary>BUTTON</summary>
+        <div class="acc-body" id="action-editor"></div>
+      </details>
 
-  <!-- Lighting -->
-  <section class="panel" data-panel="lighting" hidden>
-    <div class="card">
-      <div class="row">
-        <label for="effect">Effect</label>
-        <select id="effect"></select>
-      </div>
-      <div id="effect-params"></div>
-      <p class="hint" id="lighting-note">
-        The mouse stores settings for every effect separately, so switching effects keeps
-        the colours you picked for each one.
-      </p>
-    </div>
-  </section>
+      <details class="acc">
+        <summary>DPI</summary>
+        <div class="acc-body">
+          <div class="field">
+            <label for="polling-rate">Polling rate</label>
+            <select id="polling-rate"></select>
+          </div>
+          <div class="field">
+            <label for="xy-independent">Separate X / Y</label>
+            <input type="checkbox" id="xy-independent">
+          </div>
+          <p class="note">
+            The DPI button cycles the enabled stages. The selected stage is the one in
+            use now. Steps of 100 are all the sensor takes.
+          </p>
+          <div class="dpi-list" id="dpi-list"></div>
+        </div>
+      </details>
 
-  <!-- Macros -->
-  <section class="panel" data-panel="macros" hidden>
-    <div class="card">
-      <div class="row">
-        <label for="macro-bank">Macro slot</label>
-        <select id="macro-bank"></select>
-        <button class="btn" id="btn-macro-write">Write slot to mouse</button>
-      </div>
-      <p class="hint">
-        Assign a slot to a button on the Buttons tab, then write the slot here. Macros
-        cannot be read back off the mouse, so MouseFlash keeps its own copy in this
-        browser to let you edit them later.
-      </p>
-    </div>
+      <details class="acc">
+        <summary>LIGHTING</summary>
+        <div class="acc-body">
+          <div class="field">
+            <label for="effect">Effect</label>
+            <select id="effect"></select>
+          </div>
+          <div id="effect-params"></div>
+          <p class="note" id="lighting-note">
+            Each effect keeps its own colours, so switching effects loses nothing.
+          </p>
+        </div>
+      </details>
 
-    <div class="card">
-      <div class="row">
-        <button class="btn" id="btn-record">Record</button>
-        <button class="btn" id="btn-macro-clear">Clear</button>
-        <span class="hint inline" id="record-hint">
-          Recording captures key presses and releases with their real timing. Mouse clicks
-          are added with the buttons below, since clicking the page would record itself.
-        </span>
-      </div>
-      <div class="row" id="macro-mouse-row"></div>
-      <div class="macro-events" id="macro-events"></div>
-      <p class="hint" id="macro-count"></p>
-    </div>
-  </section>
+      <details class="acc">
+        <summary>PERFORMANCE</summary>
+        <div class="acc-body">
+          <div class="field">
+            <label for="debounce">Debounce</label>
+            <select id="debounce"></select>
+          </div>
+          <p class="note">
+            How long a switch is ignored after it changes state. Lower feels faster, but
+            a worn switch starts double clicking.
+          </p>
+          <div class="field">
+            <label for="lod">Lift-off distance</label>
+            <select id="lod">
+              <option value="1">2 mm</option>
+              <option value="2">3 mm</option>
+            </select>
+          </div>
+          <p class="note" id="lod-locked" hidden>
+            This mouse drives lift-off through a separate command MouseFlash does not
+            implement, so the control is disabled. Writing the byte anyway misbehaves.
+          </p>
+        </div>
+      </details>
 
-  <!-- Settings -->
-  <section class="panel" data-panel="settings" hidden>
-    <div class="card">
-      <h3>Click and tracking</h3>
-      <div class="row">
-        <label for="debounce">Debounce</label>
-        <select id="debounce"></select>
-        <span class="hint inline">
-          How long the mouse ignores a switch after it changes state. Lower feels faster
-          but a worn switch may register double clicks.
-        </span>
-      </div>
-      <div class="row">
-        <label for="lod">Lift-off distance</label>
-        <select id="lod">
-          <option value="1">2 mm</option>
-          <option value="2">3 mm</option>
-        </select>
-        <span class="hint inline">How far you can lift the mouse before it stops tracking.</span>
-      </div>
-      <p class="hint" id="lod-locked" hidden>
-        This mouse handles lift-off distance through a separate command that MouseFlash
-        does not implement, so the control is disabled. Writing to the byte anyway is
-        known to misbehave.
-      </p>
-    </div>
+      <details class="acc">
+        <summary>DEVICE</summary>
+        <div class="acc-body">
+          <dl class="facts" id="device-facts"></dl>
+        </div>
+      </details>
 
-    <div class="card">
-      <h3>Backup</h3>
-      <p class="hint">
-        Export writes a JSON file with the raw reports exactly as the mouse gave them,
-        plus the decoded settings. Import restores it.
-      </p>
-      <div class="row">
-        <button class="btn" id="btn-export">Export backup</button>
-        <button class="btn" id="btn-import">Import backup</button>
-        <input type="file" id="import-file" accept="application/json" hidden>
-      </div>
     </div>
-
-    <div class="card">
-      <h3>Device</h3>
-      <dl class="facts" id="device-facts"></dl>
-    </div>
-  </section>
+  </aside>
 </main>
+
+<!-- ============================ macro editor ============================ -->
+<dialog class="modal" id="macro-modal">
+  <form method="dialog" class="modal-head">
+    <h2>MACRO EDITOR</h2>
+    <button class="x" value="close" aria-label="Close">&times;</button>
+  </form>
+
+  <div class="modal-body">
+    <div class="field">
+      <label for="macro-bank">Slot</label>
+      <select id="macro-bank"></select>
+      <button class="slab" id="btn-macro-write">WRITE TO MOUSE</button>
+    </div>
+    <p class="note">
+      Assign a slot to a button in the BUTTON panel, then write the slot here. Macros
+      cannot be read back off the mouse, so MouseFlash keeps its own copy in this browser.
+    </p>
+
+    <div class="field">
+      <button class="slab" id="btn-record">RECORD</button>
+      <button class="slab" id="btn-macro-clear">CLEAR</button>
+    </div>
+    <p class="note" id="record-hint">
+      Recording captures key presses and releases with their real timing. Clicks are
+      added with the buttons below, since clicking the page would record itself.
+    </p>
+
+    <div class="field" id="macro-mouse-row"></div>
+    <div class="macro-events" id="macro-events"></div>
+    <p class="note" id="macro-count"></p>
+  </div>
+</dialog>
 
 <div class="toast" id="toast" hidden></div>
-
-<footer class="wrap foot">
-  <span>MouseFlash is not affiliated with Glorious or SinoWealth.</span>
-  <a href="https://github.com/Mason363/MouseFlash">Source and credits</a>
-</footer>
-
 <script type="module" src="js/app.js"></script>
 </body>
 </html>

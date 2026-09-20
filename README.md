@@ -8,7 +8,7 @@ flash, so they follow the mouse to any computer.
 
 **[Open MouseFlash](https://mason363.github.io/MouseFlash/)**
 
-<img src="assets/mouse-diagram.svg" alt="A six button mouse seen from above and from its left side, with each button numbered and labelled" width="700">
+<img src="assets/mice/model-o-top.webp" alt="Glorious Model O seen from above" width="150"> <img src="assets/mice/model-d-top.webp" alt="Glorious Model D seen from above" width="150"> <img src="assets/mice/model-o-eternal-top.webp" alt="Glorious Model O Eternal seen from above" width="145">
 
 ## What it does
 
@@ -36,7 +36,8 @@ node. On Windows, close the vendor software first, since it holds the device ope
 
 These mice are known to speak this protocol, on the authority of the projects
 listed under Credits. MouseFlash recognises them by name and knows how many
-buttons each has.
+buttons each has. The three Glorious models are shown with real product
+photography; the rest fall back to a generic drawing.
 
 | Mouse | USB ID |
 | --- | --- |
@@ -141,8 +142,17 @@ MouseFlash implements a protocol other people worked out. It exists because of:
   driver, the most complete treatment of the format, including the variable
   configuration size, the sensor table, and the device list. MIT.
 
-The mouse diagram in `assets/` was drawn for this project and is covered by the
-repository licence.
+### Artwork
+
+The photographs in `assets/mice/` are Glorious' own product images, taken from
+the button guides on their support pages and cut out of their backgrounds. They
+are used to identify the hardware the tool configures. They are **not** covered
+by this repository's licence and remain the property of Glorious. If Glorious
+would rather they were not here, open an issue and they will be removed.
+
+`assets/mouse-diagram.svg` is a drawing made for this project, covered by the
+repository licence. It is what the app shows for any mouse there is no
+photograph of.
 
 ### On licensing
 

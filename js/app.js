@@ -1,11 +1,11 @@
 // MouseFlash UI.
 //
 // State lives in one `state` object. Anything that changes it calls `markDirty`
-// and re-renders the affected tab. Nothing is written to the mouse until you
-// press Save, apart from macro slots, which have their own write button.
+// and re-renders the affected panel. Nothing reaches the mouse until you press
+// APPLY, apart from macro slots, which have their own write button.
 
 import { Mouse, grantedDevices, isSupported, requestDevice } from './hid.js';
-import { supportedNames } from './devices.js';
+import { ART, GENERIC_ART, supportedNames } from './devices.js';
 import {
   ACTION, BRIGHTNESS_MAX, DEBOUNCE_TIMES, DPI_MIN, DPI_MODES, DPI_SLOTS, DPI_STEP,
   EFFECTS, MACRO_BANKS, MACRO_EVENT, MACRO_MAX_EVENTS, MACRO_MODES, POLLING_RATES,
@@ -31,13 +31,11 @@ const state = {
   lastEventAt: 0,
 };
 
-const DEFAULT_BUTTON_NAMES = [
-  'Left click', 'Right click', 'Middle click', 'Back', 'Forward', 'DPI',
-];
+// Slot order as the vendor software lists it: slot 4 is Forward, slot 5 is
+// Back. On a top-down view Forward is the side button nearer the cable.
+const BUTTON_NAMES = ['Left Click', 'Right Click', 'Middle Click', 'Forward', 'Back', 'DPI'];
 
-function buttonName(i) {
-  return DEFAULT_BUTTON_NAMES[i] || `Button ${i + 1}`;
-}
+const buttonName = (i) => BUTTON_NAMES[i] || `Button ${i + 1}`;
 
 // ---------------------------------------------------------------------------
 // helpers
@@ -48,6 +46,7 @@ function el(tag, props = {}, children = []) {
   for (const [k, v] of Object.entries(props)) {
     if (k === 'class') node.className = v;
     else if (k === 'text') node.textContent = v;
+    else if (k === 'style') node.style.cssText = v;
     else if (k.startsWith('on')) node.addEventListener(k.slice(2), v);
     else if (v === true) node.setAttribute(k, '');
     else if (v !== false && v != null) node.setAttribute(k, v);
@@ -71,20 +70,15 @@ function markDirty(dirty = true) {
   $('#dirty-flag').hidden = !dirty;
 }
 
-function labelled(text, control, hint) {
-  return el('div', { class: 'row' }, [
-    el('label', { text }),
-    control,
-    hint ? el('span', { class: 'hint inline', text: hint }) : null,
-  ]);
+function field(label, control, ...extra) {
+  return el('div', { class: 'field' }, [el('label', { text: label }), control, ...extra]);
 }
 
 function select(options, value, onChange) {
   const node = el('select', { onchange: (e) => onChange(e.target.value) });
   for (const o of options) {
-    node.append(el('option', { value: o.value, selected: String(o.value) === String(value) }, [
-      document.createTextNode(o.label),
-    ]));
+    node.append(el('option', { value: o.value, selected: String(o.value) === String(value) },
+      [document.createTextNode(o.label)]));
   }
   return node;
 }
@@ -100,9 +94,7 @@ async function connect(device) {
   state.mouse = mouse;
   state.config = await mouse.readConfig();
   state.actions = await mouse.readButtons(state.config.sensor);
-
-  // Debounce cannot be read back, so start from the mouse's factory default.
-  state.debounce = 10;
+  state.debounce = 10;   // not readable from the mouse
   state.selected = 0;
   markDirty(false);
 
@@ -112,19 +104,51 @@ async function connect(device) {
   $('#topbar-actions').hidden = false;
   $('#device-name').textContent = mouse.name;
   $('#device-meta').textContent = [
-    mouse.firmware ? `firmware ${mouse.firmware}` : null,
+    mouse.firmware || null,
     state.config.sensor.known ? state.config.sensor.name : 'unknown sensor',
   ].filter(Boolean).join(' · ');
   $('#unknown-device').hidden = mouse.info.recognized;
 
+  setArt();
   renderAll();
   toast(`Connected to ${mouse.name}`);
+}
+
+function setArt() {
+  const art = ART[state.mouse.info.art] || GENERIC_ART;
+  const frame = $('#mouse-art');
+  const img = $('#mouse-img');
+
+  img.src = art.src;
+  img.alt = `${state.mouse.name}, viewed from above`;
+  frame.classList.toggle('wide', Boolean(art.wide));
+  $('#model-name').textContent = art.caption === 'Generic layout'
+    ? state.mouse.name
+    : art.caption;
+
+  const host = $('#callouts');
+  host.replaceChildren();
+  if (!art.points) return;
+
+  for (let i = 0; i < Math.min(art.points.length, state.actions.length); i++) {
+    const p = art.points[i];
+    host.append(el('button', {
+      class: 'cal',
+      style: `left:${p.x}%;top:${p.y}%`,
+      title: buttonName(i),
+      'data-button': i,
+      onclick: () => selectButton(i),
+    }, [document.createTextNode(String(i + 1))]));
+  }
 }
 
 async function onConnectClick() {
   try {
     const device = await requestDevice();
-    if (!device) return;
+    if (!device) {
+      toast('No mouse was picked. If the prompt listed nothing, the browser cannot see a supported mouse.', 'error');
+      return;
+    }
     await connect(device);
   } catch (err) {
     toast(describe(err), 'error');
@@ -149,20 +173,19 @@ async function save() {
     await mouse.writeButtons(actions, config.sensor);
     await mouse.setDebounce(state.debounce);
     markDirty(false);
-    toast('Saved to the mouse');
+    toast('Written to the mouse');
   } catch (err) {
-    toast(`Save failed: ${describe(err)}`, 'error');
+    toast(`Apply failed: ${describe(err)}`, 'error');
   } finally {
     button.disabled = false;
   }
 }
 
 async function reload() {
-  const { mouse } = state;
-  if (!mouse) return;
+  if (!state.mouse) return;
   try {
-    state.config = await mouse.readConfig();
-    state.actions = await mouse.readButtons(state.config.sensor);
+    state.config = await state.mouse.readConfig();
+    state.actions = await state.mouse.readButtons(state.config.sensor);
     markDirty(false);
     renderAll();
     toast('Reloaded from the mouse');
@@ -172,7 +195,7 @@ async function reload() {
 }
 
 // ---------------------------------------------------------------------------
-// buttons tab
+// buttons
 // ---------------------------------------------------------------------------
 
 function actionSummary(action) {
@@ -187,7 +210,7 @@ function actionSummary(action) {
     case ACTION.REPEAT: return `${mouseBitName(action.bits)} x${action.count}`;
     case ACTION.DPI: return (DPI_MODES.find((m) => m.value === action.mode) || {}).name || 'DPI';
     case ACTION.DPI_LOCK: return `Hold ${action.dpi} DPI`;
-    case ACTION.MACRO: return `Macro ${action.bank}`;
+    case ACTION.MACRO: return `Macro slot ${action.bank}`;
     default: return 'Disabled';
   }
 }
@@ -197,13 +220,13 @@ function renderButtonList() {
   list.replaceChildren();
   for (let i = 0; i < state.actions.length; i++) {
     list.append(el('button', {
-      class: 'button-row',
+      class: 'brow',
       'aria-current': String(i === state.selected),
       onclick: () => selectButton(i),
     }, [
-      el('span', { class: 'idx', text: String(i + 1) }),
-      el('span', { class: 'name', text: buttonName(i) }),
-      el('span', { class: 'assigned', text: actionSummary(state.actions[i]) }),
+      el('span', { class: 'n', text: String(i + 1) }),
+      el('span', { class: 'nm', text: buttonName(i) }),
+      el('span', { class: 'as', text: actionSummary(state.actions[i]) }),
     ]));
   }
 }
@@ -212,11 +235,13 @@ function selectButton(i) {
   state.selected = i;
   renderButtonList();
   renderActionEditor();
-  syncDiagram();
+  syncCallouts();
+  const panel = document.querySelector('.acc');
+  if (panel && !panel.open) panel.open = true;
 }
 
-function syncDiagram() {
-  for (const node of document.querySelectorAll('#diagram .mf-hit')) {
+function syncCallouts() {
+  for (const node of document.querySelectorAll('#callouts .cal')) {
     node.dataset.selected = String(Number(node.dataset.button) === state.selected);
   }
 }
@@ -259,32 +284,32 @@ function renderActionEditor() {
   const action = state.actions[state.selected];
   host.replaceChildren();
 
-  host.append(el('h3', { text: `${state.selected + 1}. ${buttonName(state.selected)}` }));
-  host.append(labelled(
-    'Action',
-    select(ACTION_CATEGORIES.map((c) => ({ value: c.value, label: c.label })), action.type,
-      (v) => setAction(defaultAction(v))),
-  ));
+  host.append(el('div', { class: 'editor-title' }, [
+    document.createTextNode(`${state.selected + 1} · `),
+    el('b', { text: buttonName(state.selected) }),
+  ]));
+
+  host.append(field('Action',
+    select(ACTION_CATEGORIES, action.type, (v) => setAction(defaultAction(v)))));
 
   const patch = (changes) => setAction({ ...action, ...changes });
 
   switch (action.type) {
     case ACTION.MOUSE:
-      host.append(labelled('Button',
-        select(MOUSE_BITS.map((m) => ({ value: m.bit, label: m.name })), action.bits,
-          (v) => patch({ bits: Number(v) }))));
+      host.append(field('Button', select(MOUSE_BITS.map((m) => ({ value: m.bit, label: m.name })),
+        action.bits, (v) => patch({ bits: Number(v) }))));
       break;
 
     case ACTION.SCROLL:
-      host.append(labelled('Direction',
-        select([{ value: 1, label: 'Scroll up' }, { value: -1, label: 'Scroll down' }], action.dir,
-          (v) => patch({ dir: Number(v) }))));
+      host.append(field('Direction', select(
+        [{ value: 1, label: 'Scroll up' }, { value: -1, label: 'Scroll down' }],
+        action.dir, (v) => patch({ dir: Number(v) }))));
       break;
 
     case ACTION.KEY: {
-      const mods = el('div', { class: 'swatches' });
+      const mods = el('div', { class: 'mods' });
       for (const m of MODIFIERS) {
-        mods.append(el('label', { class: 'check' }, [
+        mods.append(el('label', {}, [
           el('input', {
             type: 'checkbox',
             checked: (action.mods & m.bit) !== 0,
@@ -293,50 +318,41 @@ function renderActionEditor() {
           document.createTextNode(m.name),
         ]));
       }
-      host.append(labelled('Modifiers', mods));
-      host.append(labelled('Key',
-        select(KEYS.map((k) => ({ value: k.usage, label: k.name })), action.key,
-          (v) => patch({ key: Number(v) }))));
+      host.append(field('Modifiers', mods));
+      host.append(field('Key', select(KEYS.map((k) => ({ value: k.usage, label: k.name })),
+        action.key, (v) => patch({ key: Number(v) }))));
       break;
     }
 
     case ACTION.MEDIA:
-      host.append(labelled('Key',
-        select(MEDIA.map((m) => ({ value: m.mask, label: m.name })), action.mask,
-          (v) => patch({ mask: Number(v) }))));
+      host.append(field('Key', select(MEDIA.map((m) => ({ value: m.mask, label: m.name })),
+        action.mask, (v) => patch({ mask: Number(v) }))));
       break;
 
     case ACTION.DPI:
-      host.append(labelled('Mode',
-        select(DPI_MODES.map((m) => ({ value: m.value, label: m.name })), action.mode,
-          (v) => patch({ mode: Number(v) }))));
+      host.append(field('Mode', select(DPI_MODES.map((m) => ({ value: m.value, label: m.name })),
+        action.mode, (v) => patch({ mode: Number(v) }))));
       break;
 
     case ACTION.DPI_LOCK:
-      host.append(labelled('DPI while held',
-        el('input', {
-          type: 'number', min: DPI_MIN, max: state.config.sensor.maxDpi, step: DPI_STEP,
-          value: action.dpi,
-          onchange: (e) => patch({ dpi: Number(e.target.value) }),
-        }),
-        'The mouse uses this DPI for as long as the button is held.'));
+      host.append(field('DPI while held', el('input', {
+        type: 'number', min: DPI_MIN, max: state.config.sensor.maxDpi, step: DPI_STEP,
+        value: action.dpi,
+        onchange: (e) => patch({ dpi: Number(e.target.value) }),
+      })));
       break;
 
     case ACTION.REPEAT:
-      host.append(labelled('Button',
-        select(MOUSE_BITS.map((m) => ({ value: m.bit, label: m.name })), action.bits,
-          (v) => patch({ bits: Number(v) }))));
-      host.append(labelled('Clicks',
-        el('input', {
-          type: 'number', min: 1, max: 255, value: action.count,
-          onchange: (e) => patch({ count: Number(e.target.value) }),
-        })));
-      host.append(labelled('Gap',
-        el('input', {
-          type: 'number', min: 1, max: 255, value: action.interval,
-          onchange: (e) => patch({ interval: Number(e.target.value) }),
-        }),
-        'Milliseconds between clicks.'));
+      host.append(field('Button', select(MOUSE_BITS.map((m) => ({ value: m.bit, label: m.name })),
+        action.bits, (v) => patch({ bits: Number(v) }))));
+      host.append(field('Clicks', el('input', {
+        type: 'number', min: 1, max: 255, value: action.count,
+        onchange: (e) => patch({ count: Number(e.target.value) }),
+      })));
+      host.append(field('Gap (ms)', el('input', {
+        type: 'number', min: 1, max: 255, value: action.interval,
+        onchange: (e) => patch({ interval: Number(e.target.value) }),
+      })));
       break;
 
     case ACTION.MACRO: {
@@ -344,46 +360,26 @@ function renderActionEditor() {
         value: i + 1,
         label: `Slot ${i + 1}${(state.macros[i + 1] || []).length ? '' : ' (empty)'}`,
       }));
-      host.append(labelled('Slot', select(banks, action.bank, (v) => patch({ bank: Number(v) }))));
-      host.append(labelled('Repeat',
-        select(MACRO_MODES.map((m) => ({ value: m.value, label: m.name })), action.mode,
-          (v) => patch({ mode: Number(v) }))));
+      host.append(field('Slot', select(banks, action.bank, (v) => patch({ bank: Number(v) }))));
+      host.append(field('Repeat', select(MACRO_MODES.map((m) => ({ value: m.value, label: m.name })),
+        action.mode, (v) => patch({ mode: Number(v) }))));
       if (action.mode === 1) {
-        host.append(labelled('Times',
-          el('input', {
-            type: 'number', min: 1, max: 255, value: action.count,
-            onchange: (e) => patch({ count: Number(e.target.value) }),
-          })));
+        host.append(field('Times', el('input', {
+          type: 'number', min: 1, max: 255, value: action.count,
+          onchange: (e) => patch({ count: Number(e.target.value) }),
+        })));
       }
-      host.append(el('p', { class: 'hint', text: 'Record the slot on the Macros tab, then write it to the mouse there.' }));
+      host.append(el('p', { class: 'note', text: 'Record the slot in the macro editor, then write it to the mouse there.' }));
       break;
     }
 
     default:
-      host.append(el('p', { class: 'hint', text: 'This button does nothing.' }));
-  }
-}
-
-async function loadDiagram() {
-  const host = $('#diagram');
-  try {
-    const res = await fetch('assets/mouse-diagram.svg');
-    if (!res.ok) throw new Error(String(res.status));
-    host.innerHTML = await res.text();
-    for (const node of host.querySelectorAll('.mf-hit')) {
-      node.addEventListener('click', () => {
-        const i = Number(node.dataset.button);
-        if (i < state.actions.length) selectButton(i);
-      });
-    }
-    syncDiagram();
-  } catch {
-    host.textContent = 'Diagram unavailable. Use the list to pick a button.';
+      host.append(el('p', { class: 'note', text: 'This button does nothing.' }));
   }
 }
 
 // ---------------------------------------------------------------------------
-// DPI tab
+// DPI
 // ---------------------------------------------------------------------------
 
 function renderDpi() {
@@ -392,7 +388,6 @@ function renderDpi() {
   $('#polling-rate').replaceChildren(...POLLING_RATES.map((r) => el('option', {
     value: r, selected: r === cfg.pollingRate,
   }, [document.createTextNode(`${r} Hz`)])));
-
   $('#xy-independent').checked = cfg.xyIndependent;
 
   const list = $('#dpi-list');
@@ -402,62 +397,50 @@ function renderDpi() {
     const stage = cfg.dpi[i];
     const max = cfg.sensor.maxDpi;
 
-    // The slider and the number box drive each other directly. Re-rendering on
-    // every input event would replace the element under the pointer and cut a
-    // drag short.
+    // Slider and number box drive each other directly. Re-rendering on every
+    // input event would replace the element under the pointer mid-drag.
     const number = el('input', { type: 'number', min: DPI_MIN, max, step: DPI_STEP, value: stage.x });
     const range = el('input', { type: 'range', min: DPI_MIN, max, step: DPI_STEP, value: stage.x });
 
     const apply = (value, ...echo) => {
       stage.x = value;
       if (!cfg.xyIndependent) stage.y = value;
-      for (const node of echo) node.value = value;
+      for (const n of echo) n.value = value;
       markDirty();
     };
     range.addEventListener('input', (e) => apply(Number(e.target.value), number));
     number.addEventListener('change', (e) => apply(Number(e.target.value), range));
 
-    const values = el('div', { class: 'values' }, [number, el('span', { class: 'hint', text: 'DPI' })]);
-
+    const xy = el('div', { class: 'xy' }, [number]);
     if (cfg.xyIndependent) {
       const yBox = el('input', { type: 'number', min: DPI_MIN, max, step: DPI_STEP, value: stage.y });
       yBox.addEventListener('change', (e) => { stage.y = Number(e.target.value); markDirty(); });
-      values.replaceChildren(
-        number,
-        el('span', { class: 'hint', text: 'X' }),
-        yBox,
-        el('span', { class: 'hint', text: 'Y' }),
-      );
+      xy.append(el('span', { class: 'u', text: 'X' }), yBox, el('span', { class: 'u', text: 'Y' }));
     }
 
     list.append(el('div', {
-      class: 'dpi-stage',
+      class: 'stage-row',
       'data-enabled': String(stage.enabled),
       'data-active': String(i === cfg.activeSlot),
     }, [
-      el('span', { class: 'stage-no', text: String(i + 1) }),
-      el('label', { class: 'check', title: 'Include this stage in the DPI cycle' }, [
-        el('input', {
-          type: 'checkbox', checked: stage.enabled,
-          onchange: (e) => { stage.enabled = e.target.checked; markDirty(); renderDpi(); },
-        }),
-      ]),
+      el('span', { class: 'sn', text: String(i + 1) }),
+      el('input', {
+        type: 'checkbox', checked: stage.enabled, title: 'Include in the DPI cycle',
+        onchange: (e) => { stage.enabled = e.target.checked; markDirty(); renderDpi(); },
+      }),
       range,
-      values,
-      el('label', { class: 'check', title: 'Use this stage now' }, [
-        el('input', {
-          type: 'radio', name: 'active-dpi', checked: i === cfg.activeSlot,
-          disabled: !stage.enabled,
-          onchange: () => { cfg.activeSlot = i; markDirty(); renderDpi(); },
-        }),
-        document.createTextNode('Active'),
-      ]),
+      xy,
+      el('input', {
+        type: 'radio', name: 'active-dpi', checked: i === cfg.activeSlot,
+        disabled: !stage.enabled, title: 'Use this stage now',
+        onchange: () => { cfg.activeSlot = i; markDirty(); renderDpi(); },
+      }),
     ]));
   }
 }
 
 // ---------------------------------------------------------------------------
-// Lighting tab
+// lighting
 // ---------------------------------------------------------------------------
 
 function renderLighting() {
@@ -472,37 +455,34 @@ function renderLighting() {
   const host = $('#effect-params');
   host.replaceChildren();
 
-  const touch = () => { markDirty(); renderLighting(); };
-
-  // These update their own readout rather than re-rendering, so a drag survives.
+  // Sliders update their own readout rather than re-rendering, so a drag survives.
   const scale = (label, key, maxValue) => {
     const value = Math.min(Math.max(params[key] || 1, 1), maxValue);
     params[key] = value;
-    const readout = el('span', { class: 'hint inline', text: `${value} of ${maxValue}` });
+    const out = el('span', { class: 'out', text: `${value}/${maxValue}` });
     const range = el('input', { type: 'range', min: 1, max: maxValue, step: 1, value });
     range.addEventListener('input', (e) => {
       params[key] = Number(e.target.value);
-      readout.textContent = `${params[key]} of ${maxValue}`;
+      out.textContent = `${params[key]}/${maxValue}`;
       markDirty();
     });
-    host.append(el('div', { class: 'row' }, [el('label', { text: label }), range, readout]));
+    host.append(field(label, range, out));
   };
 
   if (spec.params.includes('speed')) scale('Speed', 'speed', SPEED_MAX);
   if (spec.params.includes('brightness')) scale('Brightness', 'brightness', BRIGHTNESS_MAX);
 
   if (spec.params.includes('direction')) {
-    host.append(labelled('Direction',
-      select([{ value: 1, label: 'Forward' }, { value: 0, label: 'Backward' }], params.direction,
-        (v) => { params.direction = Number(v); touch(); })));
+    host.append(field('Direction', select(
+      [{ value: 1, label: 'Forward' }, { value: 0, label: 'Backward' }],
+      params.direction, (v) => { params.direction = Number(v); markDirty(); })));
   }
 
   if (spec.params.includes('colorCount')) {
-    host.append(labelled('Colours in the cycle',
-      el('input', {
-        type: 'number', min: 1, max: spec.colors, value: params.colorCount || spec.colors,
-        onchange: (e) => { params.colorCount = Number(e.target.value); touch(); },
-      })));
+    host.append(field('Colours', el('input', {
+      type: 'number', min: 1, max: spec.colors, value: params.colorCount || spec.colors,
+      onchange: (e) => { params.colorCount = Number(e.target.value); markDirty(); renderLighting(); },
+    })));
   }
 
   if (spec.colors > 0) {
@@ -518,31 +498,24 @@ function renderLighting() {
         oninput: (e) => { params.colors[i] = e.target.value; markDirty(); },
       }));
     }
-    host.append(labelled(shown === 1 ? 'Colour' : 'Colours', swatches));
+    host.append(field(shown === 1 ? 'Colour' : 'Palette', swatches));
   }
 
   $('#lighting-note').hidden = cfg.effect === 0;
 }
 
 // ---------------------------------------------------------------------------
-// Macros tab
+// macros
 // ---------------------------------------------------------------------------
 
 function loadMacros() {
-  try {
-    return JSON.parse(localStorage.getItem('mouseflash.macros') || '{}');
-  } catch {
-    return {};
-  }
+  try { return JSON.parse(localStorage.getItem('mouseflash.macros') || '{}'); }
+  catch { return {}; }
 }
 
 function saveMacros() {
-  try {
-    localStorage.setItem('mouseflash.macros', JSON.stringify(state.macros));
-  } catch {
-    // Private browsing and blocked storage both land here. The macro still
-    // writes to the mouse; it just will not survive a reload.
-  }
+  try { localStorage.setItem('mouseflash.macros', JSON.stringify(state.macros)); }
+  catch { /* private browsing; the macro still writes to the mouse */ }
 }
 
 function currentMacro() {
@@ -560,16 +533,16 @@ function renderMacros() {
   $('#macro-bank').replaceChildren(...Array.from({ length: MACRO_BANKS }, (_, i) => {
     const n = i + 1;
     const count = (state.macros[n] || []).length;
-    return el('option', { value: n, selected: n === state.bank }, [
-      document.createTextNode(`Slot ${n}${count ? ` (${count} events)` : ' (empty)'}`),
-    ]);
+    return el('option', { value: n, selected: n === state.bank },
+      [document.createTextNode(`Slot ${n}${count ? ` (${count})` : ' (empty)'}`)]);
   }));
 
   const mouseRow = $('#macro-mouse-row');
   mouseRow.replaceChildren(el('label', { text: 'Add a click' }));
   for (const m of MOUSE_BITS.slice(0, 3)) {
     mouseRow.append(el('button', {
-      class: 'btn',
+      class: 'slab',
+      text: m.name.replace(' Click', ''),
       onclick: () => {
         const events = currentMacro();
         events.push({ kind: MACRO_EVENT.MOUSE, code: m.bit, down: true, delay: 1 });
@@ -577,7 +550,6 @@ function renderMacros() {
         saveMacros();
         renderMacros();
       },
-      text: m.name,
     }));
   }
 
@@ -587,12 +559,12 @@ function renderMacros() {
 
   for (let i = 0; i < events.length; i++) {
     const ev = events[i];
-    host.append(el('div', { class: 'macro-event' }, [
-      el('span', { class: 'no', text: String(i + 1) }),
+    host.append(el('div', { class: 'mev' }, [
+      el('span', { class: 'i', text: String(i + 1) }),
       el('span', { text: macroEventName(ev) }),
-      el('span', { class: 'state', text: ev.down ? 'press' : 'release' }),
+      el('span', { class: 'st', text: ev.down ? 'press' : 'release' }),
       el('input', {
-        type: 'number', min: 1, max: 4095, value: ev.delay, title: 'Delay before this event, in milliseconds',
+        type: 'number', min: 1, max: 4095, value: ev.delay, title: 'Delay before this event, in ms',
         onchange: (e) => { ev.delay = Number(e.target.value); saveMacros(); },
       }),
       el('button', {
@@ -603,35 +575,33 @@ function renderMacros() {
   }
 
   $('#macro-count').textContent = events.length
-    ? `${events.length} of ${MACRO_MAX_EVENTS} events. Delays are in milliseconds.`
-    : 'No events yet. Press Record and type, or add a click.';
-
+    ? `${events.length} of ${MACRO_MAX_EVENTS} events. Delays are milliseconds.`
+    : 'No events yet. Press RECORD and type, or add a click.';
   $('#btn-macro-write').disabled = events.length === 0;
 }
 
-function toggleRecording() {
-  state.recording = !state.recording;
+function toggleRecording(force) {
+  state.recording = force === undefined ? !state.recording : force;
   const button = $('#btn-record');
-  button.textContent = state.recording ? 'Stop recording' : 'Record';
-  button.classList.toggle('recording', state.recording);
+  button.textContent = state.recording ? 'STOP' : 'RECORD';
+  button.classList.toggle('rec', state.recording);
   $('#record-hint').textContent = state.recording
-    ? 'Recording. Every key press and release is captured with its timing. Press Stop when done.'
-    : 'Recording captures key presses and releases with their real timing. Mouse clicks are added with the buttons below, since clicking the page would record itself.';
+    ? 'Recording. Every key press and release is captured with its timing.'
+    : 'Recording captures key presses and releases with their real timing. Clicks are added with the buttons below, since clicking the page would record itself.';
   state.lastEventAt = performance.now();
 }
 
 function onRecordKey(e) {
   if (!state.recording) return;
   e.preventDefault();
+  if (e.repeat) return;
 
   const events = currentMacro();
   if (events.length >= MACRO_MAX_EVENTS) {
-    toggleRecording();
+    toggleRecording(false);
     toast(`A macro holds at most ${MACRO_MAX_EVENTS} events`, 'error');
     return;
   }
-  // Holding a key fires keydown repeatedly; the mouse only wants the first.
-  if (e.repeat) return;
 
   const modifier = CODE_TO_MODIFIER.get(e.code);
   const usage = CODE_TO_USAGE.get(e.code);
@@ -663,7 +633,7 @@ async function writeMacro() {
 }
 
 // ---------------------------------------------------------------------------
-// Settings tab
+// device panel and backup
 // ---------------------------------------------------------------------------
 
 function renderSettings() {
@@ -681,26 +651,18 @@ function renderSettings() {
   const facts = $('#device-facts');
   facts.replaceChildren();
   const rows = [
-    ['Name', state.mouse.name],
-    ['USB IDs', `${hex4(state.mouse.device.vendorId)}:${hex4(state.mouse.device.productId)}`],
+    ['Model', state.mouse.name],
+    ['USB', `${hex4(state.mouse.device.vendorId)}:${hex4(state.mouse.device.productId)}`],
     ['Firmware', state.mouse.firmware || 'unknown'],
-    ['Sensor', cfg.sensor.known ? `${cfg.sensor.name}, up to ${cfg.sensor.maxDpi} DPI`
-      : `unknown (id 0x${cfg.sensor.id.toString(16)}), capped at ${cfg.sensor.maxDpi} DPI`],
-    ['Config report', `id ${state.mouse.reportId}, ${state.mouse.configSize} bytes`],
+    ['Sensor', cfg.sensor.known ? `${cfg.sensor.name}, max ${cfg.sensor.maxDpi}` : `unknown (0x${cfg.sensor.id.toString(16)})`],
+    ['Config', `report ${state.mouse.reportId}, ${state.mouse.configSize} bytes`],
     ['Buttons', String(state.mouse.buttonCount)],
   ];
-  for (const [term, value] of rows) {
-    facts.append(el('dt', { text: term }), el('dd', { text: value }));
-  }
+  for (const [term, value] of rows) facts.append(el('dt', { text: term }), el('dd', { text: value }));
 }
 
-function hex4(n) {
-  return n.toString(16).padStart(4, '0');
-}
-
-function toHex(bytes) {
-  return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
-}
+const hex4 = (n) => n.toString(16).padStart(4, '0');
+const toHex = (bytes) => Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
 
 function fromHex(text) {
   const out = new Uint8Array(text.length / 2);
@@ -721,7 +683,7 @@ function exportBackup() {
       firmware: mouse.firmware,
       configSize: mouse.configSize,
     },
-    // The raw reports are the real backup: they include every byte, known or not.
+    // The raw reports are the real backup: every byte, known or not.
     configRaw: toHex(config.raw),
     buttonRaw: mouse.buttonRaw ? toHex(mouse.buttonRaw) : null,
     debounce: state.debounce,
@@ -748,8 +710,7 @@ async function importBackup(file) {
     const sameDevice = payload.device
       && payload.device.vendorId === state.mouse.device.vendorId
       && payload.device.productId === state.mouse.device.productId;
-    if (!sameDevice
-        && !confirm('That backup came from a different mouse. Restoring it could set values this mouse does not support. Continue?')) {
+    if (!sameDevice && !confirm('That backup came from a different mouse. Restoring it could set values this mouse does not support. Continue?')) {
       return;
     }
 
@@ -767,7 +728,7 @@ async function importBackup(file) {
 
     markDirty();
     renderAll();
-    toast('Backup loaded. Press Save to write it to the mouse.');
+    toast('Backup loaded. Press APPLY to write it to the mouse.');
   } catch (err) {
     toast(`Import failed: ${describe(err)}`, 'error');
   }
@@ -780,28 +741,15 @@ async function importBackup(file) {
 function renderAll() {
   renderButtonList();
   renderActionEditor();
-  syncDiagram();
+  syncCallouts();
   renderDpi();
   renderLighting();
   renderMacros();
   renderSettings();
 }
 
-function showTab(name) {
-  for (const tab of document.querySelectorAll('.tab')) {
-    tab.setAttribute('aria-selected', String(tab.dataset.tab === name));
-  }
-  for (const panel of document.querySelectorAll('.panel')) {
-    panel.hidden = panel.dataset.panel !== name;
-  }
-  // Recording only makes sense while the Macros tab is open.
-  if (name !== 'macros' && state.recording) toggleRecording();
-}
-
 function init() {
-  $('#supported-list').replaceChildren(
-    ...supportedNames().map((n) => el('li', { text: n })),
-  );
+  $('#supported-list').replaceChildren(...supportedNames().map((n) => el('li', { text: n })));
 
   if (!isSupported()) {
     $('#unsupported').hidden = false;
@@ -813,10 +761,6 @@ function init() {
   $('#btn-connect').addEventListener('click', onConnectClick);
   $('#btn-save').addEventListener('click', save);
   $('#btn-reload').addEventListener('click', reload);
-
-  for (const tab of document.querySelectorAll('.tab')) {
-    tab.addEventListener('click', () => showTab(tab.dataset.tab));
-  }
 
   $('#polling-rate').addEventListener('change', (e) => {
     state.config.pollingRate = Number(e.target.value);
@@ -841,11 +785,14 @@ function init() {
     markDirty();
   });
 
+  const modal = $('#macro-modal');
+  $('#btn-macro-open').addEventListener('click', () => { renderMacros(); modal.showModal(); });
+  modal.addEventListener('close', () => toggleRecording(false));
   $('#macro-bank').addEventListener('change', (e) => {
     state.bank = Number(e.target.value);
     renderMacros();
   });
-  $('#btn-record').addEventListener('click', toggleRecording);
+  $('#btn-record').addEventListener('click', () => toggleRecording());
   $('#btn-macro-clear').addEventListener('click', () => {
     state.macros[state.bank] = [];
     saveMacros();
@@ -876,8 +823,6 @@ function init() {
   window.addEventListener('beforeunload', (e) => {
     if (state.dirty) e.preventDefault();
   });
-
-  loadDiagram();
 
   // Reconnect without a prompt if permission was granted before.
   grantedDevices().then((devices) => {
