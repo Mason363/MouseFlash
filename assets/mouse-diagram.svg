@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 400" width="820" height="400" role="img" aria-labelledby="mf-title mf-desc">
+  <title id="mf-title">Mouse button layout</title>
+  <desc id="mf-desc">A six button mouse seen from above and from its left side. Button 1 is the left click, 2 the right click, 3 the scroll wheel and middle click, 4 the rear side button, 5 the front side button, and 6 the DPI button behind the wheel.</desc>
+
+  <style>
+    /* Colours come from CSS custom properties so the page can retheme the
+       drawing. The fallbacks make the file stand on its own. */
+    .mf-shell   { fill: var(--mf-body, #21252e); stroke: var(--mf-edge, #454c5c); stroke-width: 2; }
+    .mf-seam    { fill: none; stroke: var(--mf-edge, #454c5c); stroke-width: 2; }
+    .mf-well    { fill: var(--mf-well, #171a21); stroke: none; }
+    .mf-hit     { fill: var(--mf-btn, #2b3039); stroke: var(--mf-edge, #454c5c); stroke-width: 1.5; cursor: pointer; }
+    .mf-hit:hover { fill: var(--mf-btn-hover, #39414f); }
+    .mf-hit[data-selected="true"] { fill: var(--mf-accent-soft, #23375e); stroke: var(--mf-accent, #5b8cff); stroke-width: 2.5; }
+    .mf-leader  { fill: none; stroke: var(--mf-leader, #4a5160); stroke-width: 1.5; }
+    .mf-label   { fill: var(--mf-text, #c9d1d9); font: 500 14px system-ui, -apple-system, "Segoe UI", sans-serif; }
+    .mf-num     { fill: var(--mf-accent, #5b8cff); font-weight: 700; }
+    .mf-caption { fill: var(--mf-muted, #8b949e); font: 500 12px system-ui, -apple-system, "Segoe UI", sans-serif; letter-spacing: .08em; }
+  </style>
+
+  <defs>
+    <!-- Top-down silhouette, reused as the clip for the click surfaces. -->
+    <path id="mf-top-shell" d="M 230 50
+      C 272 52, 303 100, 304 168
+      C 305 250, 276 340, 230 340
+      C 184 340, 155 250, 156 168
+      C 157 100, 188 52, 230 50 Z"/>
+    <clipPath id="mf-top-clip"><use href="#mf-top-shell"/></clipPath>
+  </defs>
+
+  <!-- ===================== Top view ===================== -->
+  <g>
+    <use href="#mf-top-shell" class="mf-shell"/>
+
+    <!-- Click surfaces, clipped so they follow the outline exactly. -->
+    <g clip-path="url(#mf-top-clip)">
+      <rect class="mf-hit" data-button="0" x="120" y="34" width="110" height="148"/>
+      <rect class="mf-hit" data-button="1" x="230" y="34" width="110" height="148"/>
+    </g>
+
+    <!-- Seam between the click surfaces and the body. -->
+    <path class="mf-seam" d="M 157 182 C 200 186, 260 186, 303 182"/>
+    <path class="mf-seam" d="M 230 50 L 230 182"/>
+
+    <!-- Scroll wheel sitting in its well. Doubles as the middle click. -->
+    <rect class="mf-well" x="245" y="60" width="30" height="60" rx="15"/>
+    <rect class="mf-hit" data-button="2" x="248" y="64" width="24" height="52" rx="12"/>
+    <path class="mf-seam" d="M 254 76 H 266 M 254 90 H 266 M 254 104 H 266" stroke-width="1"/>
+
+    <!-- DPI button, behind the seam on the body shell. -->
+    <rect class="mf-hit" data-button="5" x="246" y="198" width="28" height="28" rx="8"/>
+
+    <text class="mf-caption" x="230" y="372" text-anchor="middle">TOP</text>
+  </g>
+
+  <!-- ===================== Left side view ===================== -->
+  <g>
+    <path class="mf-shell" d="M 462 330
+      L 462 312
+      C 465 298, 482 286, 512 279
+      C 568 266, 632 246, 672 222
+      C 702 204, 738 212, 748 240
+      C 757 262, 758 306, 756 322
+      L 756 330 Z"/>
+
+    <!-- Wheel poking above the shell, a quarter of the way back. -->
+    <path class="mf-hit" data-button="2" d="M 520 279 C 522 261, 546 259, 548 272 Z"/>
+
+    <!-- Side buttons on the flank, slanted to follow the shell edge. -->
+    <path class="mf-hit" data-button="4" d="M 496 306 L 540 296 L 543 308 L 499 318 Z"/>
+    <path class="mf-hit" data-button="3" d="M 550 298 L 594 288 L 597 300 L 553 310 Z"/>
+
+    <text class="mf-caption" x="609" y="372" text-anchor="middle">LEFT SIDE</text>
+  </g>
+
+  <!-- ===================== Labels ===================== -->
+  <g>
+    <path class="mf-leader" d="M 134 116 L 162 124"/>
+    <text class="mf-label" x="128" y="120" text-anchor="end"><tspan class="mf-num">1</tspan>  Left click</text>
+
+    <path class="mf-leader" d="M 134 212 L 244 212"/>
+    <text class="mf-label" x="128" y="216" text-anchor="end"><tspan class="mf-num">6</tspan>  DPI</text>
+
+    <path class="mf-leader" d="M 326 116 L 300 124"/>
+    <text class="mf-label" x="332" y="120"><tspan class="mf-num">2</tspan>  Right click</text>
+
+    <path class="mf-leader" d="M 326 72 L 276 88"/>
+    <text class="mf-label" x="332" y="76"><tspan class="mf-num">3</tspan>  Middle click</text>
+
+    <path class="mf-leader" d="M 494 218 L 516 300"/>
+    <text class="mf-label" x="488" y="214" text-anchor="end"><tspan class="mf-num">5</tspan>  Forward</text>
+
+    <path class="mf-leader" d="M 566 190 L 572 290"/>
+    <text class="mf-label" x="560" y="186" text-anchor="end"><tspan class="mf-num">4</tspan>  Back</text>
+  </g>
+</svg>
