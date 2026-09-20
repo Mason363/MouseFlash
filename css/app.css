@@ -358,8 +358,6 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--accent); margi
 .field input[type="range"] { flex: 1; min-width: 90px; }
 
 .swatches { display: flex; gap: 5px; flex-wrap: wrap; flex: 1; }
-.mods { display: flex; gap: 10px; flex: 1; flex-wrap: wrap; }
-.mods label { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; cursor: pointer; }
 
 .editor-title {
   font-size: 12px;
@@ -510,21 +508,14 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--accent); margi
   font-weight: 600;
 }
 
-.chip.mod {
-  cursor: pointer;
-  min-width: 34px;
-  text-align: center;
-  font-size: 13px;
-  padding: 5px 8px;
-}
-
 .opts {
   margin-top: 14px;
   padding-top: 13px;
   border-top: 1px solid var(--line);
 }
 .opts .chips { margin-top: 0; }
-.opts input[type="text"] { flex: 1; min-width: 90px; }
+.opts input[type="text"] { flex: 1; min-width: 80px; }
+.opts .grp:first-child { margin-top: 0; }
 
 /* A button row or callout lit up as a drop target. */
 .brow.drop { box-shadow: inset 0 0 0 1px var(--accent); background: var(--slab-hi); }

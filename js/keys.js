@@ -1,13 +1,23 @@
 // HID usage tables used by keyboard shortcuts, macros, and media actions.
 
 // Modifier bits, as the mouse stores them. Only the left-hand modifiers exist
-// in the protocol.
-export const MODIFIERS = [
-  { bit: 0x01, name: 'Ctrl' },
-  { bit: 0x02, name: 'Shift' },
-  { bit: 0x04, name: 'Alt' },
-  { bit: 0x08, name: 'Super' },
-];
+// in the protocol. Named and drawn the way the keys are on the host platform,
+// since a bare glyph tells you nothing if you do not already know it.
+const IS_MAC = typeof navigator !== 'undefined' && /Mac/i.test(navigator.platform || '');
+
+export const MODIFIERS = IS_MAC
+  ? [
+      { bit: 0x01, name: 'Control', glyph: '\u2303' },
+      { bit: 0x02, name: 'Shift', glyph: '\u21e7' },
+      { bit: 0x04, name: 'Option', glyph: '\u2325' },
+      { bit: 0x08, name: 'Command', glyph: '\u2318' },
+    ]
+  : [
+      { bit: 0x01, name: 'Ctrl', glyph: '' },
+      { bit: 0x02, name: 'Shift', glyph: '' },
+      { bit: 0x04, name: 'Alt', glyph: '' },
+      { bit: 0x08, name: 'Win', glyph: '' },
+    ];
 
 export function modifiersToText(bits) {
   const parts = MODIFIERS.filter((m) => bits & m.bit).map((m) => m.name);

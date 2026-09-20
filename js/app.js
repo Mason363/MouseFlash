@@ -325,13 +325,9 @@ function setActionAt(row, action) {
   renderActionEditor();
 }
 
-// Modifier bits as they read on screen. Apple's glyphs are what the keys say.
-const MOD_GLYPHS = navigator.platform.startsWith('Mac')
-  ? [[0x01, '⌃'], [0x02, '⇧'], [0x04, '⌥'], [0x08, '⌘']]
-  : [[0x01, 'Ctrl'], [0x02, 'Shift'], [0x04, 'Alt'], [0x08, 'Win']];
-
 function comboText(mods, key) {
-  return MOD_GLYPHS.filter(([b]) => mods & b).map(([, g]) => g).join(' ') + ' ' + keyName(key);
+  const m = modifiersToText(mods);
+  return m ? `${m} + ${keyName(key)}` : keyName(key);
 }
 
 function renderActionEditor() {
@@ -370,11 +366,12 @@ function renderActionEditor() {
 
   switch (action.type) {
     case ACTION.KEY: {
-      const mods = el('div', { class: 'mods' });
-      for (const [bit, glyph] of MOD_GLYPHS) {
+      const mods = el('div', { class: 'chips' });
+      for (const m of MODIFIERS) {
         mods.append(el('button', {
-          class: 'chip mod', 'aria-pressed': String((action.mods & bit) !== 0), text: glyph,
-          onclick: () => patch({ mods: action.mods ^ bit }),
+          class: 'chip', 'aria-pressed': String((action.mods & m.bit) !== 0),
+          text: m.glyph ? `${m.glyph}  ${m.name}` : m.name,
+          onclick: () => patch({ mods: action.mods ^ m.bit }),
         }));
       }
 
@@ -398,9 +395,16 @@ function renderActionEditor() {
         onclick: (e) => startCapture(e.currentTarget, (m, k) => setAction({ type: ACTION.KEY, mods: m, key: k })),
       });
 
-      opts.append(field('Modifiers', mods));
-      opts.append(field('Key', box, grab));
-      opts.append(el('p', { class: 'note', text: `Sends ${comboText(action.mods, action.key)}. Combinations the system takes first, such as Cmd+Tab, have to be set with the box.` }));
+      // A browsable list as well; typing only helps once you know the name.
+      const all = select(KEYS.map((k) => ({ value: k.usage, label: k.name })), action.key,
+        (v) => patch({ key: Number(v) }));
+
+      opts.append(el('div', { class: 'grp', text: 'Modifiers' }));
+      opts.append(mods);
+      opts.append(el('div', { class: 'grp', text: 'Key' }));
+      opts.append(field('Search', box, grab));
+      opts.append(field('All keys', all));
+      opts.append(el('p', { class: 'note', text: `Sends ${comboText(action.mods, action.key)}. Combinations the system takes first, such as Command and Tab, have to be chosen from the list rather than captured.` }));
       break;
     }
 
