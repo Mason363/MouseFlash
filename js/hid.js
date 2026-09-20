@@ -28,10 +28,12 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 // open it. Chromium reports that only as "Failed to open the device", so say
 // what actually causes it.
 const DEVICE_BUSY = [
-  'Another program has claimed the mouse, so the browser cannot open it.',
-  'On macOS this is almost always Karabiner-Elements: it seizes every device with a keyboard interface, and this mouse has one.',
-  'Open Karabiner-Elements settings, go to Devices, and untick this mouse. Quitting Karabiner works too.',
-  'On Windows, close the vendor software (Glorious CORE) first. On Linux, check that no other process holds the hidraw node.',
+  'Something else has claimed the mouse, so the browser cannot open it. In order of likelihood:',
+  '(1) another MouseFlash tab or window already has it open, so close the others and reload;',
+  '(2) on macOS, a key remapper such as Karabiner-Elements, which seizes every device with a keyboard interface,',
+  'so open its settings, go to Devices, and untick this mouse;',
+  '(3) on Windows, the vendor software such as Glorious CORE, so close it;',
+  '(4) on Linux, another process on the hidraw node, or a missing udev rule.',
 ].join(' ');
 
 export function isSupported() {

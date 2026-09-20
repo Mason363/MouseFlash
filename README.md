@@ -36,7 +36,10 @@ which is what lets a button send a keyboard shortcut. Any program that claims
 keyboards claims that interface too, and then nothing else can open it. The
 browser reports this only as "Failed to open the device".
 
-- **macOS.** Almost always [Karabiner-Elements](https://karabiner-elements.pqrs.org/),
+- **Another MouseFlash tab.** Only one can hold the mouse at a time, and
+  MouseFlash reconnects on load, so a second tab left open will block the first.
+  Close the others and reload.
+- **macOS.** Otherwise usually [Karabiner-Elements](https://karabiner-elements.pqrs.org/),
   which seizes every device it sees as a keyboard. Open its settings, go to
   Devices, and untick the mouse. Quitting Karabiner works too. Other remappers
   that grab HID devices do the same thing.
