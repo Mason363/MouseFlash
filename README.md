@@ -10,7 +10,8 @@ Settings are written to the mouse's onboard memory, so they follow it to any com
 
 ## Features
 
-- **Buttons.** Remap every button to a click, scroll step, keyboard shortcut, media key, DPI action, rapid fire, or macro.
+- **Buttons.** Pick an action from a grid, or drag it onto the button in the photo. Clicks, scroll, keyboard shortcuts, media keys, DPI actions, rapid fire, macros.
+- **Keyboard shortcuts.** Press the combination to capture it, or type to search the key list.
 - **DPI.** Eight stages, each with its own value, indicator colour, and optional separate X and Y.
 - **Macros.** Record with real timing, reorder by dragging, write to any of the eight onboard slots.
 - **Lighting.** Every effect the mouse supports, with speed, brightness and colours.
