@@ -28,17 +28,29 @@
 
 <!-- ============================ connect ============================ -->
 <main class="gate" id="view-connect">
-  <div class="gate-box">
+  <div class="gate-box stop" id="no-webhid" hidden>
+    <div class="stop-bar">
+      <span class="stop-mark" aria-hidden="true">!</span>
+      <h1 id="stop-title">This browser cannot talk to your mouse</h1>
+    </div>
+    <p class="stop-why" id="stop-why"></p>
+    <div id="stop-switch">
+      <h2>Open this page in one of these</h2>
+      <ul class="stop-browsers">
+        <li>Google Chrome</li><li>Microsoft Edge</li><li>Brave</li>
+        <li>Opera</li><li>Arc</li><li>Vivaldi</li>
+      </ul>
+    </div>
+    <button class="btn accent" id="btn-copy-link">Copy the link</button>
+    <p class="note" id="stop-note">Firefox and Safari have no WebHID at all, and there is no setting or extension that adds it.</p>
+  </div>
+
+  <div class="gate-box" id="gate-ok">
     <h1>Configure your mouse from the browser</h1>
     <p>
       MouseFlash speaks to Glorious and other SinoWealth mice over WebHID. Remap
       buttons, set DPI stages, record macros, change lighting. Everything is written
       to the mouse itself, so it follows the mouse to any computer.
-    </p>
-
-    <p class="warn" id="unsupported" hidden>
-      This browser has no WebHID. Use Chrome, Edge, Brave, Opera or another Chromium
-      browser on desktop. Firefox and Safari cannot do this.
     </p>
 
     <button class="btn accent big" id="btn-connect">Connect a mouse</button>

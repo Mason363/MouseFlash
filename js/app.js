@@ -924,13 +924,60 @@ function renderAll() {
   renderSettings();
 }
 
+/** Which browser this is, so the message can name it. */
+function browserName() {
+  const ua = navigator.userAgent;
+  if (/Firefox\//.test(ua)) return 'Firefox';
+  if (/OPR\//.test(ua)) return 'Opera';
+  if (/Edg\//.test(ua)) return 'Edge';
+  if (/Chrome\//.test(ua)) return 'This browser';
+  if (/Safari\//.test(ua)) return 'Safari';
+  return 'This browser';
+}
+
+/**
+ * Take over the whole page when WebHID is missing. The old version was one
+ * line of small print next to a working-looking button, which meant going
+ * hunting for the reason nothing happened.
+ */
+function showNoWebHid() {
+  $('#gate-ok').hidden = true;
+  $('#no-webhid').hidden = false;
+
+  // Same symptom, two very different causes: no WebHID in this browser, or a
+  // page that is not in a secure context.
+  const insecure = !window.isSecureContext;
+  const name = browserName();
+
+  $('#stop-title').textContent = insecure
+    ? 'This page is not running securely'
+    : `${name} cannot talk to your mouse`;
+
+  $('#stop-why').textContent = insecure
+    ? `WebHID only works over HTTPS or on localhost, and this page is on ${location.protocol}//${location.host || 'a file'}. Open the hosted copy, or serve the folder over HTTP and use localhost.`
+    : `${name} does not support WebHID, the browser feature MouseFlash uses to reach the mouse. Nothing on this page can work until you switch browsers.`;
+
+  // Naming other browsers is only useful when the browser is the problem.
+  $('#stop-switch').hidden = insecure;
+  $('#stop-note').hidden = insecure;
+
+  const copy = $('#btn-copy-link');
+  copy.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(location.href);
+      copy.textContent = 'Copied';
+      setTimeout(() => { copy.textContent = 'Copy the link'; }, 2000);
+    } catch {
+      copy.textContent = location.href;
+    }
+  });
+}
+
 function init() {
   $('#supported-list').replaceChildren(...supportedNames().map((n) => el('li', { text: n })));
 
   if (!isSupported()) {
-    $('#unsupported').hidden = false;
-    $('#btn-connect').disabled = true;
-    $('#connect-hint').hidden = true;
+    showNoWebHid();
     return;
   }
 

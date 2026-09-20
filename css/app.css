@@ -16,6 +16,8 @@
   --accent-dim: #4a4a50;
   --accent-ink: #131314;
   --red: #d8443c;
+  --warn: #e0a33e;
+  --warn-line: #5c4415;
 
   --col-left: 232px;
   --col-right: 340px;
@@ -154,7 +156,7 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--accent); margi
 .gate-box h1 { font-size: 19px; font-weight: 600; letter-spacing: -.01em; margin-bottom: 10px; }
 .gate-box > p { color: var(--dim); max-width: 62ch; }
 .gate-box .btn.big { margin-top: 16px; }
-.warn { color: #e0a33e; }
+.warn { color: var(--warn); }
 
 .note { color: var(--dim-2); font-size: 11.5px; line-height: 1.5; margin: 8px 0 0; }
 
@@ -520,3 +522,52 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--accent); margi
 /* A button row or callout lit up as a drop target. */
 .brow.drop { box-shadow: inset 0 0 0 1px var(--accent); background: var(--slab-hi); }
 .cal.drop { background: var(--accent); color: var(--accent-ink); box-shadow: 0 0 0 5px rgb(255 255 255 / .2); }
+
+/* ---------------------------------------------------------------- no webhid */
+
+/* The one place colour is worth spending: you are stuck until you read this. */
+.gate-box.stop { border-color: var(--warn-line); }
+
+.stop-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.stop-mark {
+  flex: none;
+  width: 30px; height: 30px;
+  display: grid; place-items: center;
+  border: 2px solid var(--warn);
+  color: var(--warn);
+  font: 700 17px/1 ui-sans-serif, system-ui, sans-serif;
+}
+.stop-bar h1 { font-size: 19px; font-weight: 600; letter-spacing: -.01em; margin: 0; }
+
+.stop-why {
+  color: var(--text);
+  font-size: 13.5px;
+  line-height: 1.55;
+  max-width: 62ch;
+  margin: 0 0 20px;
+}
+
+.gate-box.stop h2 {
+  font-size: 12px;
+  color: var(--dim);
+  margin: 0 0 8px;
+}
+.stop-browsers {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 18px;
+  padding: 0;
+}
+.stop-browsers li {
+  border: 1px solid var(--line-2);
+  background: var(--slab);
+  padding: 6px 11px;
+  font-size: 12px;
+}

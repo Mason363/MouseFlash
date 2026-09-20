@@ -37,7 +37,9 @@ const DEVICE_BUSY = [
 ].join(' ');
 
 export function isSupported() {
-  return typeof navigator !== 'undefined' && 'hid' in navigator;
+  // Check the value, not just the key: a key that exists but holds nothing is
+  // no more usable than a missing one.
+  return typeof navigator !== 'undefined' && Boolean(navigator.hid);
 }
 
 const FILTERS = VENDOR_IDS.map((vendorId) => ({ vendorId, usagePage: VENDOR_USAGE_PAGE }));
