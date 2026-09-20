@@ -29,8 +29,20 @@ WebHID is what makes this possible and Firefox and Safari do not implement it,
 so they cannot run MouseFlash. The page must be served over HTTPS or from
 localhost, which is a WebHID requirement rather than a MouseFlash one.
 
-On Linux you may need a udev rule granting your user access to the mouse's hidraw
-node. On Windows, close the vendor software first, since it holds the device open.
+## If the browser cannot open the mouse
+
+These mice put their settings on the same USB interface as a keyboard collection,
+which is what lets a button send a keyboard shortcut. Any program that claims
+keyboards claims that interface too, and then nothing else can open it. The
+browser reports this only as "Failed to open the device".
+
+- **macOS.** Almost always [Karabiner-Elements](https://karabiner-elements.pqrs.org/),
+  which seizes every device it sees as a keyboard. Open its settings, go to
+  Devices, and untick the mouse. Quitting Karabiner works too. Other remappers
+  that grab HID devices do the same thing.
+- **Windows.** Close the vendor software, such as Glorious CORE.
+- **Linux.** Check that nothing else holds the hidraw node, and that your user
+  has permission to read it. A udev rule is usually what is missing.
 
 ## Supported mice
 

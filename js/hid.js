@@ -22,6 +22,18 @@ const SETTLE_MS = 20;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+// These mice put their settings on the same USB interface as a keyboard
+// collection, which is what lets a button send a keyboard shortcut. Anything
+// that claims keyboards claims this interface too, and then nothing else can
+// open it. Chromium reports that only as "Failed to open the device", so say
+// what actually causes it.
+const DEVICE_BUSY = [
+  'Another program has claimed the mouse, so the browser cannot open it.',
+  'On macOS this is almost always Karabiner-Elements: it seizes every device with a keyboard interface, and this mouse has one.',
+  'Open Karabiner-Elements settings, go to Devices, and untick this mouse. Quitting Karabiner works too.',
+  'On Windows, close the vendor software (Glorious CORE) first. On Linux, check that no other process holds the hidraw node.',
+].join(' ');
+
 export function isSupported() {
   return typeof navigator !== 'undefined' && 'hid' in navigator;
 }
@@ -76,7 +88,13 @@ export class Mouse {
   }
 
   async open() {
-    if (!this.device.opened) await this.device.open();
+    if (!this.device.opened) {
+      try {
+        await this.device.open();
+      } catch (cause) {
+        throw new Error(DEVICE_BUSY, { cause });
+      }
+    }
     this.firmware = await this.readFirmware();
     // The firmware string often tells apart mice that share a product ID.
     this.info = identify({
