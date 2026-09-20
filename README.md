@@ -6,7 +6,9 @@ Settings are written to the mouse's onboard memory, so they follow it to any com
 
 **[Open MouseFlash](https://mason363.github.io/MouseFlash/)**
 
-<img src="assets/mice/model-o-top.webp" alt="Glorious Model O" width="150"> <img src="assets/mice/model-d-top.webp" alt="Glorious Model D" width="150"> <img src="assets/mice/model-o-eternal-top.webp" alt="Glorious Model O Eternal" width="145">
+![MouseFlash configuring a Glorious Model O](assets/screenshot.webp)
+
+<img src="assets/mice/model-o-top.webp" alt="Glorious Model O" width="130"> <img src="assets/mice/model-d-top.webp" alt="Glorious Model D" width="130"> <img src="assets/mice/model-o-eternal-top.webp" alt="Glorious Model O Eternal" width="126">
 
 ## Features
 
