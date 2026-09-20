@@ -9,7 +9,7 @@ import { supportedNames } from './devices.js';
 import {
   ACTION, BRIGHTNESS_MAX, DEBOUNCE_TIMES, DPI_MIN, DPI_MODES, DPI_SLOTS, DPI_STEP,
   EFFECTS, MACRO_BANKS, MACRO_EVENT, MACRO_MAX_EVENTS, MACRO_MODES, POLLING_RATES,
-  SPEED_MAX,
+  SPEED_MAX, decodeButtons, decodeConfig,
 } from './protocol.js';
 import {
   CODE_TO_MODIFIER, CODE_TO_USAGE, KEYS, MEDIA, MODIFIERS, MOUSE_BITS,
@@ -87,13 +87,6 @@ function select(options, value, onChange) {
     ]));
   }
   return node;
-}
-
-function slider(min, max, step, value, onInput) {
-  return el('input', {
-    type: 'range', min, max, step, value,
-    oninput: (e) => onInput(Number(e.target.value)),
-  });
 }
 
 // ---------------------------------------------------------------------------
@@ -409,22 +402,30 @@ function renderDpi() {
     const stage = cfg.dpi[i];
     const max = cfg.sensor.maxDpi;
 
-    const number = el('input', {
-      type: 'number', min: DPI_MIN, max, step: DPI_STEP, value: stage.x,
-      onchange: (e) => setStageDpi(i, Number(e.target.value)),
-    });
-    const range = slider(DPI_MIN, max, DPI_STEP, stage.x, (v) => setStageDpi(i, v));
+    // The slider and the number box drive each other directly. Re-rendering on
+    // every input event would replace the element under the pointer and cut a
+    // drag short.
+    const number = el('input', { type: 'number', min: DPI_MIN, max, step: DPI_STEP, value: stage.x });
+    const range = el('input', { type: 'range', min: DPI_MIN, max, step: DPI_STEP, value: stage.x });
+
+    const apply = (value, ...echo) => {
+      stage.x = value;
+      if (!cfg.xyIndependent) stage.y = value;
+      for (const node of echo) node.value = value;
+      markDirty();
+    };
+    range.addEventListener('input', (e) => apply(Number(e.target.value), number));
+    number.addEventListener('change', (e) => apply(Number(e.target.value), range));
 
     const values = el('div', { class: 'values' }, [number, el('span', { class: 'hint', text: 'DPI' })]);
 
     if (cfg.xyIndependent) {
+      const yBox = el('input', { type: 'number', min: DPI_MIN, max, step: DPI_STEP, value: stage.y });
+      yBox.addEventListener('change', (e) => { stage.y = Number(e.target.value); markDirty(); });
       values.replaceChildren(
         number,
         el('span', { class: 'hint', text: 'X' }),
-        el('input', {
-          type: 'number', min: DPI_MIN, max, step: DPI_STEP, value: stage.y,
-          onchange: (e) => { stage.y = Number(e.target.value); markDirty(); renderDpi(); },
-        }),
+        yBox,
         el('span', { class: 'hint', text: 'Y' }),
       );
     }
@@ -455,14 +456,6 @@ function renderDpi() {
   }
 }
 
-function setStageDpi(i, value) {
-  const stage = state.config.dpi[i];
-  stage.x = value;
-  if (!state.config.xyIndependent) stage.y = value;
-  markDirty();
-  renderDpi();
-}
-
 // ---------------------------------------------------------------------------
 // Lighting tab
 // ---------------------------------------------------------------------------
@@ -481,19 +474,22 @@ function renderLighting() {
 
   const touch = () => { markDirty(); renderLighting(); };
 
-  if (spec.params.includes('speed')) {
-    host.append(labelled('Speed',
-      slider(1, SPEED_MAX, 1, Math.min(Math.max(params.speed || 1, 1), SPEED_MAX),
-        (v) => { params.speed = v; touch(); }),
-      `${params.speed || 1} of ${SPEED_MAX}`));
-  }
+  // These update their own readout rather than re-rendering, so a drag survives.
+  const scale = (label, key, maxValue) => {
+    const value = Math.min(Math.max(params[key] || 1, 1), maxValue);
+    params[key] = value;
+    const readout = el('span', { class: 'hint inline', text: `${value} of ${maxValue}` });
+    const range = el('input', { type: 'range', min: 1, max: maxValue, step: 1, value });
+    range.addEventListener('input', (e) => {
+      params[key] = Number(e.target.value);
+      readout.textContent = `${params[key]} of ${maxValue}`;
+      markDirty();
+    });
+    host.append(el('div', { class: 'row' }, [el('label', { text: label }), range, readout]));
+  };
 
-  if (spec.params.includes('brightness')) {
-    host.append(labelled('Brightness',
-      slider(1, BRIGHTNESS_MAX, 1, Math.min(Math.max(params.brightness || 1, 1), BRIGHTNESS_MAX),
-        (v) => { params.brightness = v; touch(); }),
-      `${params.brightness || 1} of ${BRIGHTNESS_MAX}`));
-  }
+  if (spec.params.includes('speed')) scale('Speed', 'speed', SPEED_MAX);
+  if (spec.params.includes('brightness')) scale('Brightness', 'brightness', BRIGHTNESS_MAX);
 
   if (spec.params.includes('direction')) {
     host.append(labelled('Direction',
@@ -757,7 +753,6 @@ async function importBackup(file) {
       return;
     }
 
-    const { decodeConfig, decodeButtons } = await import('./protocol.js');
     state.config = decodeConfig(fromHex(payload.configRaw), {
       configSize: state.mouse.configSize,
       ledOrder: 'rbg',

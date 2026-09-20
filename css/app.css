@@ -13,7 +13,9 @@
   --warn: #e0a33e;
   --radius: 10px;
 
-  /* Consumed by the inlined mouse diagram. */
+  /* Consumed by the inlined mouse diagram. The standalone file carries its
+     own dark backdrop for the README; in the app the card behind it shows through. */
+  --mf-bg: transparent;
   --mf-body: #21252e;
   --mf-edge: #454c5c;
   --mf-well: #12151a;
@@ -38,6 +40,7 @@
     --accent-ink: #ffffff;
     --accent-soft: #dbe6ff;
 
+    --mf-bg: transparent;
     --mf-body: #e6eaf0;
     --mf-edge: #b8c1cd;
     --mf-well: #cdd5df;

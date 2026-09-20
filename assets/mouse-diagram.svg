@@ -5,6 +5,7 @@
   <style>
     /* Colours come from CSS custom properties so the page can retheme the
        drawing. The fallbacks make the file stand on its own. */
+    .mf-bg      { fill: var(--mf-bg, #14171d); }
     .mf-shell   { fill: var(--mf-body, #21252e); stroke: var(--mf-edge, #454c5c); stroke-width: 2; }
     .mf-seam    { fill: none; stroke: var(--mf-edge, #454c5c); stroke-width: 2; }
     .mf-well    { fill: var(--mf-well, #171a21); stroke: none; }
@@ -16,6 +17,8 @@
     .mf-num     { fill: var(--mf-accent, #5b8cff); font-weight: 700; }
     .mf-caption { fill: var(--mf-muted, #8b949e); font: 500 12px system-ui, -apple-system, "Segoe UI", sans-serif; letter-spacing: .08em; }
   </style>
+
+  <rect class="mf-bg" width="820" height="400" rx="10"/>
 
   <defs>
     <!-- Top-down silhouette, reused as the clip for the click surfaces. -->
