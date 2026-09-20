@@ -1,20 +1,20 @@
-/* MouseFlash. Flat, square, dense. Modelled on the vendor configurators it
-   replaces rather than on anything web-shaped. */
+/* MouseFlash. Flat, square, dense. The interface stays out of the way and
+   monochrome; the mouse itself is the only thing in colour. */
 
 :root {
-  --bg: #0c0c0e;
-  --panel: #141417;
-  --panel-2: #191a1e;
-  --slab: #26262b;
-  --slab-hi: #303037;
-  --line: #2a2a30;
-  --line-2: #35353d;
-  --text: #e4e4e6;
-  --dim: #83838c;
-  --dim-2: #5e5e66;
-  --accent: #f0a500;
-  --accent-dim: #8a6205;
-  --accent-ink: #14100a;
+  --bg: #0d0d0e;
+  --panel: #151517;
+  --panel-2: #191a1c;
+  --slab: #232326;
+  --slab-hi: #2c2c30;
+  --line: #262629;
+  --line-2: #323236;
+  --text: #ededee;
+  --dim: #8b8b92;
+  --dim-2: #64646b;
+  --accent: #ededee;
+  --accent-dim: #4a4a50;
+  --accent-ink: #131314;
   --red: #d8443c;
 
   --col-left: 232px;
@@ -51,13 +51,13 @@ h1, h2 { margin: 0; font-weight: 700; }
 }
 
 .wordmark {
-  font-size: 15px;
-  font-weight: 800;
-  letter-spacing: .14em;
+  font-size: 14px;
+  font-weight: 650;
+  letter-spacing: -.01em;
   margin-right: auto;
   user-select: none;
 }
-.wordmark em { font-style: normal; color: var(--accent); }
+.wordmark em { font-style: normal; color: var(--dim); }
 
 .bar-device {
   display: flex;
@@ -72,9 +72,7 @@ h1, h2 { margin: 0; font-weight: 700; }
 .bar-device i {
   font-style: normal;
   color: var(--dim);
-  font-size: 11px;
-  letter-spacing: .04em;
-  text-transform: uppercase;
+  font-size: 11.5px;
 }
 .led {
   width: 6px; height: 6px;
@@ -84,27 +82,20 @@ h1, h2 { margin: 0; font-weight: 700; }
 }
 
 .bar-actions { display: flex; align-items: center; gap: 8px; }
-.dirty {
-  color: var(--accent);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: .12em;
-}
+.dirty { color: var(--dim); font-size: 11.5px; }
 
 /* ---------------------------------------------------------------- controls */
 
 .btn, .slab {
   font: inherit;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: .09em;
-  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 13px;
   border: 1px solid var(--line-2);
   background: var(--slab);
   color: var(--text);
   cursor: pointer;
   border-radius: 0;
-  text-transform: uppercase;
 }
 .btn:hover:not(:disabled), .slab:hover:not(:disabled) { background: var(--slab-hi); }
 .btn:disabled, .slab:disabled { opacity: .4; cursor: not-allowed; }
@@ -114,10 +105,10 @@ h1, h2 { margin: 0; font-weight: 700; }
   color: var(--accent-ink);
   font-weight: 700;
 }
-.btn.accent:hover:not(:disabled) { background: #ffb61a; }
-.btn.big { padding: 11px 26px; font-size: 12px; }
+.btn.accent:hover:not(:disabled) { background: #ffffff; }
+.btn.big { padding: 10px 22px; font-size: 13px; }
 .slab.wide { width: 100%; }
-.slab.on { border-color: var(--accent); color: var(--accent); }
+.slab.on { border-color: var(--accent); }
 .slab.rec { border-color: var(--red); color: #ff8b82; }
 
 select, input[type="number"], input[type="text"] {
@@ -160,10 +151,10 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--accent); margi
   border: 1px solid var(--line);
   padding: 30px 32px 26px;
 }
-.gate-box h1 { font-size: 16px; letter-spacing: .1em; margin-bottom: 12px; }
+.gate-box h1 { font-size: 19px; font-weight: 600; letter-spacing: -.01em; margin-bottom: 10px; }
 .gate-box > p { color: var(--dim); max-width: 62ch; }
 .gate-box .btn.big { margin-top: 16px; }
-.warn { color: var(--accent); }
+.warn { color: #e0a33e; }
 
 .note { color: var(--dim-2); font-size: 11.5px; line-height: 1.5; margin: 8px 0 0; }
 
@@ -176,10 +167,7 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--accent); margi
   border-top: 1px solid var(--line);
 }
 @media (max-width: 680px) { .gate-cols { grid-template-columns: 1fr; } }
-.gate-cols h2 {
-  font-size: 10px; letter-spacing: .16em; color: var(--accent);
-  margin-bottom: 8px;
-}
+.gate-cols h2 { font-size: 12px; color: var(--dim); margin-bottom: 8px; }
 .gate-cols ul { margin: 0; padding-left: 15px; color: var(--dim-2); font-size: 11.5px; }
 
 /* ---------------------------------------------------------------- stage */
@@ -210,10 +198,10 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--accent); margi
 .acc-scroll { overflow: auto; flex: 1; }
 
 .col-head {
-  font-size: 10px;
-  letter-spacing: .18em;
-  color: var(--accent);
-  margin-bottom: 2px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--dim);
+  margin-bottom: 4px;
 }
 .col-bottom { margin-top: auto; padding-top: 10px; }
 .profile-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
@@ -237,9 +225,10 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--accent); margi
   border-radius: 0;
 }
 .brow:hover { background: var(--slab-hi); }
-.brow[aria-current="true"] { border-color: var(--accent); background: #2b2412; }
+.brow[aria-current="true"] .n { color: var(--text); }
+.brow[aria-current="true"] { background: var(--slab-hi); box-shadow: inset 2px 0 0 var(--accent); }
 
-.brow .n { color: var(--accent); font-size: 11px; font-weight: 700; text-align: center; }
+.brow .n { color: var(--dim-2); font-size: 11px; font-weight: 600; text-align: center; }
 .brow .nm { font-size: 12px; font-weight: 600; }
 .brow .as {
   grid-column: 2;
@@ -277,21 +266,22 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--accent); margi
   width: 23px; height: 23px;
   transform: translate(-50%, -50%);
   border-radius: 50%;
-  border: 1px solid var(--accent-dim);
-  background: #15130d;
-  color: var(--accent);
-  font: 700 11px/1 ui-sans-serif, system-ui, sans-serif;
+  border: 1px solid rgb(255 255 255 / .45);
+  background: rgb(18 18 20 / .82);
+  color: var(--text);
+  font: 600 11px/1 ui-sans-serif, system-ui, sans-serif;
+  backdrop-filter: blur(2px);
   display: grid;
   place-items: center;
   cursor: pointer;
   padding: 0;
 }
-.cal:hover { background: #2b2412; }
+.cal:hover { background: rgb(50 50 55 / .9); }
 .cal[data-selected="true"] {
   background: var(--accent);
   border-color: var(--accent);
   color: var(--accent-ink);
-  box-shadow: 0 0 0 4px rgb(240 165 0 / .18);
+  box-shadow: 0 0 0 4px rgb(255 255 255 / .14);
 }
 /* Side-button callouts sit off the silhouette, so give them a leader line. */
 .cal.off::after {
@@ -304,10 +294,10 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--accent); margi
 }
 
 .model-name {
-  font-size: clamp(20px, 3.4vw, 34px);
-  font-weight: 800;
-  letter-spacing: .2em;
-  color: #303038;
+  font-size: clamp(16px, 2.2vw, 22px);
+  font-weight: 600;
+  letter-spacing: .02em;
+  color: #34343a;
   text-transform: uppercase;
   padding: 10px 0 2px;
   user-select: none;
@@ -316,9 +306,9 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--accent); margi
 
 .banner {
   align-self: stretch;
-  border: 1px solid var(--accent-dim);
-  background: #1d1709;
-  color: #e8c470;
+  border: 1px solid var(--line-2);
+  background: var(--panel-2);
+  color: var(--dim);
   padding: 7px 11px;
   font-size: 11.5px;
   margin: 0 0 10px;
@@ -330,11 +320,10 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--accent); margi
 .acc > summary {
   list-style: none;
   cursor: pointer;
-  padding: 11px 14px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: .14em;
-  color: var(--accent);
+  padding: 12px 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
   background: var(--panel-2);
   display: flex;
   align-items: center;
@@ -373,13 +362,11 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--accent); margi
 .mods label { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; cursor: pointer; }
 
 .editor-title {
-  font-size: 11px;
-  letter-spacing: .12em;
+  font-size: 12px;
   color: var(--dim);
   border-bottom: 1px solid var(--line);
-  padding-bottom: 7px;
-  margin-bottom: 11px;
-  text-transform: uppercase;
+  padding-bottom: 8px;
+  margin-bottom: 12px;
 }
 .editor-title b { color: var(--text); }
 
@@ -428,7 +415,7 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--accent); margi
   background: var(--panel-2);
   border-bottom: 1px solid var(--line);
 }
-.modal-head h2 { font-size: 11px; letter-spacing: .16em; color: var(--accent); margin-right: auto; }
+.modal-head h2 { font-size: 12.5px; font-weight: 600; color: var(--text); margin-right: auto; }
 .modal-head .x {
   border: 0; background: none; color: var(--dim);
   font-size: 19px; line-height: 1; cursor: pointer; padding: 0 2px;
@@ -439,15 +426,21 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--accent); margi
 .macro-events { display: flex; flex-direction: column; gap: 2px; margin-top: 10px; }
 .mev {
   display: grid;
-  grid-template-columns: 22px 1fr auto 62px 20px;
+  grid-template-columns: 14px 20px 1fr auto 62px 20px;
   align-items: center;
   gap: 8px;
-  padding: 4px 7px;
+  padding: 5px 7px;
   background: var(--panel-2);
+  border: 1px solid transparent;
   font-size: 11.5px;
 }
+.mev .grip { color: var(--dim-2); cursor: grab; text-align: center; user-select: none; }
+.mev:active .grip { cursor: grabbing; }
+.mev.dragging { opacity: .4; }
+.mev.over-up { box-shadow: inset 0 2px 0 var(--accent); }
+.mev.over-down { box-shadow: inset 0 -2px 0 var(--accent); }
 .mev .i { color: var(--dim-2); font-variant-numeric: tabular-nums; }
-.mev .st { color: var(--dim-2); font-size: 10px; letter-spacing: .06em; text-transform: uppercase; }
+.mev .st { color: var(--dim-2); font-size: 11px; }
 .mev input[type="number"] { width: 100%; font-size: 11px; padding: 2px 4px; }
 .mev .del { border: 0; background: none; color: var(--dim-2); cursor: pointer; font-size: 15px; line-height: 1; }
 .mev .del:hover { color: #ff8b82; }
@@ -467,6 +460,7 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--accent); margi
   z-index: 40;
 }
 .toast[data-kind="error"] { border-left-color: var(--red); }
+.toast { border-left-color: var(--dim); }
 
 /* ---------------------------------------------------------------- narrow */
 

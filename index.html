@@ -11,7 +11,7 @@
 <body>
 
 <header class="bar">
-  <div class="wordmark">MOUSE<em>FLASH</em></div>
+  <div class="wordmark">Mouse<em>Flash</em></div>
 
   <div class="bar-device" id="device-chip" hidden>
     <span class="led" aria-hidden="true"></span>
@@ -20,16 +20,16 @@
   </div>
 
   <div class="bar-actions" id="topbar-actions" hidden>
-    <span class="dirty" id="dirty-flag" hidden>UNSAVED</span>
-    <button class="btn" id="btn-reload">RELOAD</button>
-    <button class="btn accent" id="btn-save">APPLY</button>
+    <span class="dirty" id="dirty-flag" hidden>Unsaved changes</span>
+    <button class="btn" id="btn-reload">Reload</button>
+    <button class="btn accent" id="btn-save">Apply</button>
   </div>
 </header>
 
 <!-- ============================ connect ============================ -->
 <main class="gate" id="view-connect">
   <div class="gate-box">
-    <h1>CONFIGURE YOUR MOUSE FROM THE BROWSER</h1>
+    <h1>Configure your mouse from the browser</h1>
     <p>
       MouseFlash speaks to Glorious and other SinoWealth mice over WebHID. Remap
       buttons, set DPI stages, record macros, change lighting. Everything is written
@@ -41,7 +41,7 @@
       browser on desktop. Firefox and Safari cannot do this.
     </p>
 
-    <button class="btn accent big" id="btn-connect">CONNECT A MOUSE</button>
+    <button class="btn accent big" id="btn-connect">Connect a mouse</button>
     <p class="note" id="connect-hint">
       Pick the mouse in the browser prompt. If it lists more than one entry for the
       same mouse, any will do.
@@ -49,11 +49,11 @@
 
     <div class="gate-cols">
       <div>
-        <h2>SUPPORTED</h2>
+        <h2>Supported</h2>
         <ul id="supported-list"></ul>
       </div>
       <div>
-        <h2>BEFORE YOU APPLY</h2>
+        <h2>Before you apply</h2>
         <p class="note">
           Applying writes to the mouse's onboard flash, the same thing the vendor
           software does. The protocol was reverse engineered, not published, so
@@ -73,15 +73,15 @@
 
   <!-- left: buttons -->
   <aside class="col col-left">
-    <h2 class="col-head">BUTTONS</h2>
+    <h2 class="col-head">Buttons</h2>
     <div class="button-list" id="button-list"></div>
-    <button class="slab wide" id="btn-macro-open">MACRO EDITOR</button>
+    <button class="slab wide" id="btn-macro-open">Macro editor</button>
 
     <div class="col-bottom">
-      <h2 class="col-head">PROFILE</h2>
+      <h2 class="col-head">Profile</h2>
       <div class="profile-row">
-        <button class="slab" id="btn-export" title="Export a backup file">EXPORT</button>
-        <button class="slab" id="btn-import" title="Import a backup file">IMPORT</button>
+        <button class="slab" id="btn-export" title="Export a backup file">Export</button>
+        <button class="slab" id="btn-import" title="Import a backup file">Import</button>
       </div>
       <input type="file" id="import-file" accept="application/json" hidden>
     </div>
@@ -107,7 +107,7 @@
     <div class="acc-scroll">
 
       <details class="acc" open>
-        <summary>BUTTON</summary>
+        <summary>Button</summary>
         <div class="acc-body" id="action-editor"></div>
       </details>
 
@@ -131,7 +131,7 @@
       </details>
 
       <details class="acc">
-        <summary>LIGHTING</summary>
+        <summary>Lighting</summary>
         <div class="acc-body">
           <div class="field">
             <label for="effect">Effect</label>
@@ -145,7 +145,7 @@
       </details>
 
       <details class="acc">
-        <summary>PERFORMANCE</summary>
+        <summary>Performance</summary>
         <div class="acc-body">
           <div class="field">
             <label for="debounce">Debounce</label>
@@ -170,7 +170,7 @@
       </details>
 
       <details class="acc">
-        <summary>DEVICE</summary>
+        <summary>Device</summary>
         <div class="acc-body">
           <dl class="facts" id="device-facts"></dl>
         </div>
@@ -183,7 +183,7 @@
 <!-- ============================ macro editor ============================ -->
 <dialog class="modal" id="macro-modal">
   <form method="dialog" class="modal-head">
-    <h2>MACRO EDITOR</h2>
+    <h2>Macro editor</h2>
     <button class="x" value="close" aria-label="Close">&times;</button>
   </form>
 
@@ -191,23 +191,25 @@
     <div class="field">
       <label for="macro-bank">Slot</label>
       <select id="macro-bank"></select>
-      <button class="slab" id="btn-macro-write">WRITE TO MOUSE</button>
+      <button class="slab" id="btn-macro-write">Write to mouse</button>
     </div>
     <p class="note">
-      Assign a slot to a button in the BUTTON panel, then write the slot here. Macros
+      Assign a slot to a button in the Button panel, then write the slot here. Macros
       cannot be read back off the mouse, so MouseFlash keeps its own copy in this browser.
     </p>
 
     <div class="field">
-      <button class="slab" id="btn-record">RECORD</button>
-      <button class="slab" id="btn-macro-clear">CLEAR</button>
+      <button class="slab" id="btn-record">Record</button>
+      <button class="slab" id="btn-macro-clear">Clear</button>
     </div>
     <p class="note" id="record-hint">
-      Recording captures key presses and releases with their real timing. Clicks are
-      added with the buttons below, since clicking the page would record itself.
+      Recording captures key presses and releases with their real timing. Clicks and
+      single keys are added below, since clicking the page would record itself.
+      Drag any row by its handle to reorder.
     </p>
 
     <div class="field" id="macro-mouse-row"></div>
+    <div class="field" id="macro-key-row"></div>
     <div class="macro-events" id="macro-events"></div>
     <p class="note" id="macro-count"></p>
   </div>

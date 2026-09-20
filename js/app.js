@@ -5,7 +5,7 @@
 // APPLY, apart from macro slots, which have their own write button.
 
 import { Mouse, grantedDevices, isSupported, requestDevice } from './hid.js';
-import { ART, GENERIC_ART, supportedNames } from './devices.js';
+import { ART, GENERIC_ART, layoutFor, supportedNames } from './devices.js';
 import {
   ACTION, BRIGHTNESS_MAX, DEBOUNCE_TIMES, DPI_MIN, DPI_MODES, DPI_SLOTS, DPI_STEP,
   EFFECTS, MACRO_BANKS, MACRO_EVENT, MACRO_MAX_EVENTS, MACRO_MODES, POLLING_RATES,
@@ -29,15 +29,15 @@ const state = {
   dirty: false,
   recording: false,
   lastEventAt: 0,
+  dragFrom: -1,
 };
 
-// Slot 4 is Back and slot 5 is Forward, confirmed on a Model O by binding slot
-// 4 to a DPI cycle and watching which side button answered. Note this is the
-// opposite of the order Glorious' own product guide lists the buttons in, so
-// their numbering is not the protocol's slot order.
-const BUTTON_NAMES = ['Left Click', 'Right Click', 'Middle Click', 'Back', 'Forward', 'DPI'];
-
-const buttonName = (i) => BUTTON_NAMES[i] || `Button ${i + 1}`;
+// `state.selected` is a row in the displayed layout, not a protocol slot. The
+// two differ for the side buttons; see layoutFor().
+const rows = () => layoutFor(state.mouse ? state.mouse.buttonCount : 6);
+const rowSlot = (i) => rows()[i].slot;
+const buttonName = (i) => rows()[i].name;
+const selectedAction = () => state.actions[rowSlot(state.selected)];
 
 // ---------------------------------------------------------------------------
 // helpers
@@ -132,7 +132,7 @@ function setArt() {
   host.replaceChildren();
   if (!art.points) return;
 
-  for (let i = 0; i < Math.min(art.points.length, state.actions.length); i++) {
+  for (let i = 0; i < Math.min(art.points.length, rows().length); i++) {
     const p = art.points[i];
     host.append(el('button', {
       class: 'cal',
@@ -233,17 +233,17 @@ function actionSummary(action) {
 function renderButtonList() {
   const list = $('#button-list');
   list.replaceChildren();
-  for (let i = 0; i < state.actions.length; i++) {
+  rows().forEach((row, i) => {
     list.append(el('button', {
       class: 'brow',
       'aria-current': String(i === state.selected),
       onclick: () => selectButton(i),
     }, [
       el('span', { class: 'n', text: String(i + 1) }),
-      el('span', { class: 'nm', text: buttonName(i) }),
-      el('span', { class: 'as', text: actionSummary(state.actions[i]) }),
+      el('span', { class: 'nm', text: row.name }),
+      el('span', { class: 'as', text: actionSummary(state.actions[row.slot]) }),
     ]));
-  }
+  });
 }
 
 function selectButton(i) {
@@ -262,7 +262,7 @@ function syncCallouts() {
 }
 
 function setAction(action) {
-  state.actions[state.selected] = action;
+  state.actions[rowSlot(state.selected)] = action;
   markDirty();
   renderButtonList();
   renderActionEditor();
@@ -296,7 +296,7 @@ function defaultAction(type) {
 
 function renderActionEditor() {
   const host = $('#action-editor');
-  const action = state.actions[state.selected];
+  const action = selectedAction();
   host.replaceChildren();
 
   host.append(el('div', { class: 'editor-title' }, [
@@ -568,13 +568,43 @@ function renderMacros() {
     }));
   }
 
+  // Insert a single key without recording.
+  const keyRow = $('#macro-key-row');
+  const keyPick = select(KEYS.map((k) => ({ value: k.usage, label: k.name })), 0x04, () => {});
+  keyRow.replaceChildren(
+    el('label', { text: 'Add a key' }),
+    keyPick,
+    el('button', {
+      class: 'slab', text: 'Add',
+      onclick: () => {
+        const code = Number(keyPick.value);
+        const ev = currentMacro();
+        ev.push({ kind: MACRO_EVENT.KEY, code, down: true, delay: 1 });
+        ev.push({ kind: MACRO_EVENT.KEY, code, down: false, delay: 30 });
+        saveMacros();
+        renderMacros();
+      },
+    }),
+  );
+
   const events = currentMacro();
   const host = $('#macro-events');
   host.replaceChildren();
 
+  const move = (from, to) => {
+    if (from === to || from < 0 || to < 0 || to > events.length) return;
+    events.splice(to, 0, events.splice(from, 1)[0]);
+    saveMacros();
+    renderMacros();
+  };
+  const clearMarks = () => {
+    for (const n of host.children) n.classList.remove('over-up', 'over-down');
+  };
+
   for (let i = 0; i < events.length; i++) {
     const ev = events[i];
-    host.append(el('div', { class: 'mev' }, [
+    const row = el('div', { class: 'mev', draggable: 'true' }, [
+      el('span', { class: 'grip', title: 'Drag to reorder', text: '≡' }),
       el('span', { class: 'i', text: String(i + 1) }),
       el('span', { text: macroEventName(ev) }),
       el('span', { class: 'st', text: ev.down ? 'press' : 'release' }),
@@ -586,19 +616,47 @@ function renderMacros() {
         class: 'del', title: 'Remove', text: '×',
         onclick: () => { events.splice(i, 1); saveMacros(); renderMacros(); },
       }),
-    ]));
+    ]);
+
+    row.addEventListener('dragstart', (e) => {
+      state.dragFrom = i;
+      row.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', String(i));
+    });
+    row.addEventListener('dragend', () => { row.classList.remove('dragging'); clearMarks(); });
+    row.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      const after = e.offsetY > row.offsetHeight / 2;
+      row.classList.toggle('over-down', after);
+      row.classList.toggle('over-up', !after);
+    });
+    row.addEventListener('dragleave', () => row.classList.remove('over-up', 'over-down'));
+    row.addEventListener('drop', (e) => {
+      e.preventDefault();
+      clearMarks();
+      const after = e.offsetY > row.offsetHeight / 2;
+      let to = i + (after ? 1 : 0);
+      const from = state.dragFrom;
+      if (from < to) to -= 1;
+      move(from, to);
+    });
+
+    host.append(row);
   }
+
 
   $('#macro-count').textContent = events.length
     ? `${events.length} of ${MACRO_MAX_EVENTS} events. Delays are milliseconds.`
-    : 'No events yet. Press RECORD and type, or add a click.';
+    : 'No events yet. Press Record and type, or add a click or key below.';
   $('#btn-macro-write').disabled = events.length === 0;
 }
 
 function toggleRecording(force) {
   state.recording = force === undefined ? !state.recording : force;
   const button = $('#btn-record');
-  button.textContent = state.recording ? 'STOP' : 'RECORD';
+  button.textContent = state.recording ? 'Stop' : 'Record';
   button.classList.toggle('rec', state.recording);
   $('#record-hint').textContent = state.recording
     ? 'Recording. Every key press and release is captured with its timing.'
