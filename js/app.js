@@ -31,9 +31,11 @@ const state = {
   lastEventAt: 0,
 };
 
-// Slot order as the vendor software lists it: slot 4 is Forward, slot 5 is
-// Back. On a top-down view Forward is the side button nearer the cable.
-const BUTTON_NAMES = ['Left Click', 'Right Click', 'Middle Click', 'Forward', 'Back', 'DPI'];
+// Slot 4 is Back and slot 5 is Forward, confirmed on a Model O by binding slot
+// 4 to a DPI cycle and watching which side button answered. Note this is the
+// opposite of the order Glorious' own product guide lists the buttons in, so
+// their numbering is not the protocol's slot order.
+const BUTTON_NAMES = ['Left Click', 'Right Click', 'Middle Click', 'Back', 'Forward', 'DPI'];
 
 const buttonName = (i) => BUTTON_NAMES[i] || `Button ${i + 1}`;
 

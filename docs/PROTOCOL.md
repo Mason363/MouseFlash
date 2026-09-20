@@ -138,7 +138,14 @@ MouseFlash disables the control in that case rather than writing to it.
 Eight header bytes, then twenty four-byte slots, for 88 bytes total. Slots past
 the buttons the mouse actually has are set to the disabled action.
 
-The slot order is left click, right click, middle click, back, forward, DPI.
+The slot order is left click, right click, middle click, **back**, **forward**, DPI.
+
+Be careful with the two side buttons. Glorious' own product guide numbers them
+the other way round, listing button 4 as Forward and button 5 as Back, and their
+configurator lists them in that order too. That numbering is not the protocol's
+slot order. Confirmed on a Model O by binding slot 4 to a DPI cycle and pressing
+each side button: the rear one answered. Anything that trusts the vendor's
+numbering will silently remap the wrong side button.
 
 | First byte | Action | Remaining three bytes |
 | --- | --- | --- |

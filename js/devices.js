@@ -42,7 +42,9 @@ const DEVICES = [
 ];
 
 // Artwork for the mice we have photography for. `points` are percentages of the
-// image box, in protocol slot order: left, right, middle, forward, back, DPI.
+// image box, in protocol slot order: left, right, middle, back, forward, DPI.
+// The two side-button callouts straddle the seam between the click surfaces and
+// the body, with Back the rearward one, which is where they sit on the hardware.
 //
 // Photographs are Glorious' own product images, cut out of the button guides on
 // their support pages. See the credits in the README.
@@ -52,7 +54,7 @@ export const ART = {
     caption: 'Model O',
     points: [
       { x: 25, y: 24 }, { x: 74, y: 24 }, { x: 50, y: 19 },
-      { x: 4, y: 25 }, { x: 4, y: 32 }, { x: 50, y: 37 },
+      { x: 5, y: 53 }, { x: 5, y: 39 }, { x: 50, y: 37 },
     ],
   },
   'model-d': {
@@ -60,7 +62,7 @@ export const ART = {
     caption: 'Model D',
     points: [
       { x: 25, y: 25 }, { x: 74, y: 25 }, { x: 50, y: 20 },
-      { x: 4, y: 26 }, { x: 4, y: 33 }, { x: 50, y: 38 },
+      { x: 5, y: 53 }, { x: 5, y: 39 }, { x: 50, y: 38 },
     ],
   },
   'model-o-eternal': {
@@ -68,7 +70,7 @@ export const ART = {
     caption: 'Model O Eternal',
     points: [
       { x: 26, y: 25 }, { x: 73, y: 25 }, { x: 50, y: 17 },
-      { x: 3, y: 29 }, { x: 3, y: 36 }, { x: 50, y: 40 },
+      { x: 4, y: 57 }, { x: 4, y: 43 }, { x: 50, y: 40 },
     ],
   },
 };
