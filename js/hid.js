@@ -97,8 +97,10 @@ export class Mouse {
         throw new Error(DEVICE_BUSY, { cause });
       }
     }
-    this.firmware = await this.readFirmware();
-    // The firmware string often tells apart mice that share a product ID.
+    // The firmware string only refines the name when several mice share a
+    // product ID. Chromium on macOS refuses to read feature report 5 even where
+    // report 4 works fine, so this must never be allowed to end the session.
+    this.firmware = await this.readFirmware().catch(() => '');
     this.info = identify({
       vendorId: this.device.vendorId,
       productId: this.device.productId,
@@ -172,6 +174,7 @@ export class Mouse {
 
   // -- settings ------------------------------------------------------------
 
+  /** Four ASCII characters, or '' where the platform will not read report 5. */
   async readFirmware() {
     const payload = new Uint8Array([CMD.FIRMWARE, 0, 0, 0, 0]);
     await this.device.sendFeatureReport(REPORT_CMD, payload);

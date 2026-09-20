@@ -824,9 +824,10 @@ function init() {
     if (state.dirty) e.preventDefault();
   });
 
-  // Reconnect without a prompt if permission was granted before.
+  // Reconnect without a prompt if permission was granted before. Surface a
+  // failure rather than leaving the page looking like nothing happened.
   grantedDevices().then((devices) => {
-    if (devices.length === 1) connect(devices[0]).catch(() => {});
+    if (devices.length === 1) connect(devices[0]).catch((err) => toast(describe(err), 'error'));
   }).catch(() => {});
 }
 

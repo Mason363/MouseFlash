@@ -70,10 +70,16 @@ photography; the rest fall back to a generic drawing.
 Several of these share a USB product ID and are told apart by the firmware
 version string, which MouseFlash reads and shows.
 
-To be clear about what has actually been exercised on hardware: the encoder is
-covered by a test suite that checks it against the documented byte sequences, and
-the full read, edit, and write path has been run against a simulated device. Real
-hardware confirmation is per mouse, and reports are welcome.
+The Glorious Model O (`258a:0036`, firmware V103) has been verified end to end on
+real hardware: the config report reads back at exactly 131 bytes, every field
+decodes correctly, a re-encode is byte-for-byte identical to what the mouse gave,
+and a written change takes effect and reverts cleanly. The rest are unverified on
+hardware, and reports are welcome.
+
+One platform note: Chromium on macOS will not read feature report 5, so the
+firmware version cannot be read there even though everything on report 4 works.
+MouseFlash treats that read as optional and falls back to naming the mouse from
+its USB IDs.
 
 Other mice on the same SinoWealth controller stand a good chance of working.
 MouseFlash reads the sensor type and the configuration size off the mouse rather
